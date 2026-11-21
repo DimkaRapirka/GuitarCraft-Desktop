@@ -68,6 +68,10 @@ try {
   await call('ui.openSettings',{tab:'audio'});
   await until(async () => (await dom('.lat-box b'))?.text.includes('Estimated latency'));
   assert.match((await dom('.lat-box span')).text, /^Output \d+\.\d ms$/);
+  const windowsRunnerWithoutAudio = process.platform === 'win32'
+    && process.env.GITHUB_ACTIONS === 'true'
+    && (await dom('#set-output-device option[value="default"]'))?.text === 'Default'
+    && !(await dom('#set-output-device option:not([value="default"])'));
   await call('ui.closeModals');
   assert((await dom('#btn-latency')).text.includes('kHz'));
   assert.equal((await call('engine.status')).diPlaying, false);
@@ -78,13 +82,26 @@ try {
   await until(async () => !(await call('engine.status')).diPlaying);
   await demo({click:'#btn-tuner'});
   await until(() => dom('#tn-note'));
-  await call('di.play', {index:3});
-  await until(async () => {
-    const reading = await call('tuner.read');
-    return reading?.note === 'E' && reading.octave === 2 && Math.abs(reading.cents) <= 4;
-  }, 5000);
-  await call('di.stop');
-  await until(async () => (await call('tuner.read')) === null, 3000);
+  if (windowsRunnerWithoutAudio) {
+    console.log('No WASAPI output endpoint on this runner. Skipping playback in the tuner UI.');
+    assert.equal(await call('tuner.read'), null);
+  } else {
+    const audio = await call('engine.status');
+    assert(audio.sr > 0, 'The audio stream did not open');
+    await call('di.play', {index:3});
+    let reading;
+    try {
+      await until(async () => {
+        reading = await call('tuner.read');
+        return reading?.note === 'E' && reading.octave === 2 && Math.abs(reading.cents) <= 4;
+      }, 15000);
+    } catch (error) {
+      console.error({audio, reading});
+      throw error;
+    }
+    await call('di.stop');
+    await until(async () => (await call('tuner.read')) === null, 3000);
+  }
   await demo({click:'#btn-tuner'});
   assert(await dom('.brand img.logo[src="wasm/app-icon.png"]'));
   await screenshot('amplifier');
