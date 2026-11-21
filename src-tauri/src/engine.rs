@@ -1,6 +1,7 @@
 //! Native audio engine: CoreAudio (cpal) streams, the real-time callback around `gc_dsp::chain::Rack`,
 //! analysis/tuner/recorder in a background thread, and the control side that turns rigs into chains.
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
+use cpal::{FromSample, Sample, SampleFormat};
 use crossbeam_channel::{bounded, Receiver, Sender};
 use gc_dsp::chain::{globals, kernel_for, make, node_params, plan, Chain, Garbage, Msg, Node, Rack};
 use gc_dsp::conv::Convolver;
@@ -250,8 +251,13 @@ fn audio_thread(e: Arc<Engine>, rx: Receiver<AudioCmd>) {
     std::thread::Builder::new().name("gc-garbage".into()).spawn(move || { for g in grx { drop(g); } }).unwrap();
     while let Ok(AudioCmd::Configure(cfg, reply)) = rx.recv() {
         for s in streams.drain(..) { drop(s); }
-        let r = open_streams(&e, &cfg, gtx.clone()).map(|(s, info)| { streams = s; info });
-        if let Ok(info) = &r { *e.info.lock() = info.clone(); }
+        e.shared.live.store(false, Relaxed);
+        *e.tx.lock() = None;
+        let result = open_streams(&e, &cfg, gtx.clone(), None);
+        #[cfg(windows)]
+        let result = retry_wasapi_format(result, &e, &cfg, &gtx);
+        let r = result.map(|(s, info)| { streams = s; info });
+        *e.info.lock() = r.as_ref().cloned().unwrap_or_default();
         let _ = reply.send(r);
     }
 }
@@ -262,13 +268,99 @@ fn find_device(host: &cpal::Host, name: Option<&str>, input: bool) -> Option<cpa
     if input { host.default_input_device() } else { host.default_output_device() }
 }
 
-fn open_streams(e: &Arc<Engine>, cfg: &AudioConfig, gtx: Sender<Garbage>) -> Result<(Vec<cpal::Stream>, StreamInfo), String> {
+#[cfg(windows)]
+fn retry_wasapi_format(
+    mut result: Result<(Vec<cpal::Stream>, StreamInfo), String>,
+    engine: &Arc<Engine>,
+    config: &AudioConfig,
+    garbage: &Sender<Garbage>,
+) -> Result<(Vec<cpal::Stream>, StreamInfo), String> {
+    let rejected_output = |reason: &String| {
+        let reason = reason.to_ascii_lowercase();
+        reason.starts_with("выход:") && (reason.contains("0x88890008")
+            || reason.contains("stream configuration is not supported"))
+    };
+    let mut native = config.clone();
+    native.sample_rate = None;
+    if config.sample_rate.is_some() && result.as_ref().is_err_and(rejected_output) {
+        result = open_streams(engine, &native, garbage.clone(), None);
+    }
+    if result.as_ref().is_err_and(rejected_output) {
+        // Some USB drivers reject float during Initialize despite advertising it.
+        result = open_streams(engine, &native, garbage.clone(), Some(SampleFormat::I16));
+    }
+    result
+}
+
+fn capture_samples<T: Sample>(
+    data: &[T],
+    channels: usize,
+    channel: usize,
+    mut send: impl FnMut(f32),
+) where f32: FromSample<T> {
+    for frame in data.chunks_exact(channels) {
+        send(frame[channel].to_sample::<f32>());
+    }
+}
+
+fn render_samples<T: Sample + FromSample<f32>>(
+    data: &mut [T],
+    channels: usize,
+    pair: usize,
+    mono: bool,
+    left: &[f32],
+    right: &[f32],
+) {
+    data.fill(T::EQUILIBRIUM);
+    for ((frame, &a), &b) in data.chunks_exact_mut(channels).zip(left).zip(right) {
+        let first = if mono { (a + b) * 0.5 } else { a };
+        frame[pair] = T::from_sample(first.clamp(-1., 1.));
+        if let Some(next) = frame.get_mut(pair + 1) {
+            *next = T::from_sample(if mono { first } else { b }.clamp(-1., 1.));
+        }
+    }
+}
+
+macro_rules! sample_types {
+    ($format:expr, $sample:ident, $body:expr) => {{
+        match $format {
+            SampleFormat::F32 => { type $sample = f32; $body }
+            SampleFormat::F64 => { type $sample = f64; $body }
+            SampleFormat::I8 => { type $sample = i8; $body }
+            SampleFormat::I16 => { type $sample = i16; $body }
+            SampleFormat::I32 => { type $sample = i32; $body }
+            SampleFormat::I64 => { type $sample = i64; $body }
+            SampleFormat::U8 => { type $sample = u8; $body }
+            SampleFormat::U16 => { type $sample = u16; $body }
+            SampleFormat::U32 => { type $sample = u32; $body }
+            SampleFormat::U64 => { type $sample = u64; $body }
+            _ => {}
+        }
+    }};
+}
+
+fn open_streams(
+    e: &Arc<Engine>,
+    cfg: &AudioConfig,
+    gtx: Sender<Garbage>,
+    output_format: Option<SampleFormat>,
+) -> Result<(Vec<cpal::Stream>, StreamInfo), String> {
     let host = cpal::default_host();
     let out_dev = find_device(&host, cfg.output.as_deref(), false).ok_or("нет устройства вывода")?;
     let def = out_dev.default_output_config().map_err(|e| e.to_string())?;
-    let mut rates: Vec<u32> = vec![];
-    if let Ok(cfgs) = out_dev.supported_output_configs() { for c in cfgs { for r in [44100u32, 48000, 88200, 96000] { if r >= c.min_sample_rate().0 && r <= c.max_sample_rate().0 && !rates.contains(&r) { rates.push(r); } } } }
-    rates.sort();
+    let format = output_format.unwrap_or(def.sample_format());
+    let mut rates = vec![def.sample_rate().0];
+    if let Ok(configs) = out_dev.supported_output_configs() {
+        for config in configs.filter(|c| c.channels() == def.channels() && c.sample_format() == format) {
+            for rate in [44100, 48000, 88200, 96000] {
+                if (config.min_sample_rate().0..=config.max_sample_rate().0).contains(&rate) {
+                    rates.push(rate);
+                }
+            }
+        }
+    }
+    rates.sort_unstable();
+    rates.dedup();
     let sr = cfg.sample_rate.filter(|r| rates.contains(r)).unwrap_or(def.sample_rate().0);
     let out_ch = def.channels();
     let buffer = cfg.buffer.clamp(32, 4096);
@@ -286,22 +378,22 @@ fn open_streams(e: &Arc<Engine>, cfg: &AudioConfig, gtx: Sender<Garbage>) -> Res
         in_name = in_dev.name().ok();
         let ratio = in_sr as f32 / sr as f32; let mut phase = 0f32; let mut prev = 0f32;
         let ch = channel as usize; let nch = in_ch as usize;
-        let s = in_dev.build_input_stream(&cpal::StreamConfig { channels: in_ch, sample_rate: cpal::SampleRate(in_sr), buffer_size: cpal::BufferSize::Fixed(buffer) },
-            move |data: &[f32], _| {
-                for fr in data.chunks(nch) {
-                    let x = fr.get(ch).copied().unwrap_or(0.0);
-                    if (ratio - 1.0).abs() < 1e-4 { let _ = prod.push(x); continue; }
-                    while phase < 1.0 { let _ = prod.push(prev + (x - prev) * phase); phase += ratio; }
-                    phase -= 1.0; prev = x;
-                }
+        let format = icfg.sample_format();
+        let s = in_dev.build_input_stream_raw(&cpal::StreamConfig { channels: in_ch, sample_rate: cpal::SampleRate(in_sr), buffer_size: cpal::BufferSize::Fixed(buffer) },
+            format, move |data, _| {
+                sample_types!(format, T, if let Some(data) = data.as_slice::<T>() {
+                    capture_samples(data, nch, ch, |x| {
+                        if (ratio - 1.0).abs() < 1e-4 { let _ = prod.push(x); return; }
+                        while phase < 1.0 { let _ = prod.push(prev + (x - prev) * phase); phase += ratio; }
+                        phase -= 1.0; prev = x;
+                    });
+                });
             }, |err| eprintln!("[gc] input stream error: {err}"), None).map_err(|e| format!("вход: {e}"))?;
         s.play().map_err(|e| e.to_string())?; streams.push(s);
     }
-    e.shared.live.store(live, Relaxed);
 
     // output + processing
     let (tx, rx) = bounded::<Cb>(512);
-    *e.tx.lock() = Some(tx);
     let mut rack = Rack::new(sr as f32);
     let shared = e.shared.clone();
     let (mut aprod, mut acons) = rtrb::RingBuffer::<f32>::new(1 << 17);
@@ -315,7 +407,7 @@ fn open_streams(e: &Arc<Engine>, cfg: &AudioConfig, gtx: Sender<Garbage>) -> Res
     let nch = out_ch as usize;
     let pair_start = (cfg.output_pair as usize * 2).min(nch.saturating_sub(1) / 2 * 2);
     let mono = cfg.mono || pair_start + 1 == nch;
-    let out_stream = out_dev.build_output_stream(&out_cfg, move |data: &mut [f32], info: &cpal::OutputCallbackInfo| {
+    let out_stream = out_dev.build_output_stream_raw(&out_cfg, format, move |data, info| {
         while let Ok(m) = rx.try_recv() {
             match m { Cb::Rack(m) => rack.handle(m, &mut trash), Cb::Di(d) => { let old = std::mem::replace(&mut di, d); trash(Garbage::Samples(old)); di_pos = 0; } }
         }
@@ -326,7 +418,6 @@ fn open_streams(e: &Arc<Engine>, cfg: &AudioConfig, gtx: Sender<Garbage>) -> Res
         let (mut mr, mut mi, mut mo) = (0f32, 0f32, 0f32);
         let metro = shared.metro_on.load(Relaxed); let bpm = u2f(shared.bpm.load(Relaxed)).max(20.0); let mlev = u2f(shared.metro_level.load(Relaxed));
         let tt = shared.test_tone.load(Relaxed); if tt != tone_seen { tone_seen = tt; tone_left = (srf * 0.7) as usize; }
-        let live = shared.live.load(Relaxed);
         if live { // keep the live input latency bounded
             let avail = cons.slots(); let keep = frames * 2 + 64;
             if avail > keep * 2 { for _ in 0..(avail - keep) { let _ = cons.pop(); } }
@@ -350,19 +441,20 @@ fn open_streams(e: &Arc<Engine>, cfg: &AudioConfig, gtx: Sender<Garbage>) -> Res
                     metro_n += 1;
                 }
                 if tone_left > 0 { tone_ph += 440.0 / srf; let env = (tone_left as f32 / (srf * 0.05)).min(1.0); let t = (tone_ph * std::f32::consts::TAU).sin() * 0.15 * env; a += t; b += t; tone_left -= 1; }
-                let offset = (done + i) * nch;
-                let frame = &mut data[offset..offset + nch];
-                frame.fill(0.0);
-                let left = if mono { (a + b) * 0.5 } else { a };
-                frame[pair_start] = left;
-                if pair_start + 1 < nch { frame[pair_start + 1] = if mono { left } else { b }; }
+                l[i] = a;
+                r[i] = b;
             }
+            sample_types!(format, T, if let Some(data) = data.as_slice_mut::<T>() {
+                render_samples(&mut data[done * nch..(done + n) * nch], nch, pair_start, mono, &l[..n], &r[..n]);
+            });
             done += n;
         }
         shared.meter_raw.store(f2u(mr), Relaxed); shared.meter_in.store(f2u(mi), Relaxed); shared.meter_out.store(f2u(mo), Relaxed); shared.gate_open.store(rack.meters.gate_open, Relaxed);
     }, |err| eprintln!("[gc] output stream error: {err}"), None).map_err(|e| format!("выход: {e}"))?;
     out_stream.play().map_err(|e| e.to_string())?;
     streams.push(out_stream);
+    *e.tx.lock() = Some(tx);
+    e.shared.live.store(live, Relaxed);
 
     // analysis / recorder thread for this stream generation
     let an = e.analysis.clone(); let shared2 = e.shared.clone();
@@ -380,4 +472,22 @@ fn open_streams(e: &Arc<Engine>, cfg: &AudioConfig, gtx: Sender<Garbage>) -> Res
 
     let info = StreamInfo { sample_rate: sr, buffer, output: out_dev.name().unwrap_or_default(), input: in_name, in_channels: in_ch, channel, out_channels: out_ch, sample_rates: rates };
     Ok((streams, info))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn integer_audio_uses_the_selected_inputs_and_output_pair() {
+        let mut captured = Vec::new();
+        capture_samples(&[0i16, 16384, 0, -16384], 2, 1, |sample| captured.push(sample));
+        assert_eq!(captured, [0.5, -0.5]);
+
+        let mut output = [0u16; 4];
+        render_samples(&mut output, 4, 2, false, &[0.5], &[-0.5]);
+        assert_eq!(output, [32768, 32768, 49152, 16384]);
+        render_samples(&mut output, 4, 2, true, &[0.75], &[0.25]);
+        assert_eq!(output, [32768, 32768, 49152, 49152]);
+    }
 }
