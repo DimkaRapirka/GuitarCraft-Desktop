@@ -59,9 +59,10 @@ try {
   await until(() => call('state.get', {timeoutMs: 1000}), 90000);
   await until(() => dom('[data-ctl="channel"]'));
   assert(await dom('html[lang="en"]'));
+  assert((await dom(".amp-desc")).text.includes("British crunch"));
   assert((await dom('#btn-settings')).text.includes('SETTINGS'));
   await call('ui.openSettings',{tab:'language'});
-  await until(() => dom('#set-language option[value="en"]'));
+  await until(() => dom('#set-language option[value="en"]:checked'));
   assert.equal((await dom('#set-language option[value="ru"]')).text, 'Русский');
   await call('ui.closeModals');
   await call('ui.openSettings',{tab:'audio'});
@@ -193,6 +194,8 @@ try {
     await restart();
     assert(await dom('html[lang="' + language + '"]'));
     assert((await dom('#btn-settings')).text.includes(settingsLabel));
+    await call('ui.openSettings',{tab:'language'});
+    await until(() => dom('#set-language option[value="' + language + '"]:checked'));
     await call('ui.openSettings',{tab:'audio'});
     await until(async () => (await dom('.lat-box b'))?.text.includes(latencyLabel));
     await call('ui.closeModals');

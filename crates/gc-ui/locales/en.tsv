@@ -375,7 +375,7 @@ Delay и Reverb	Delay & reverb
 Убрать MIDI ({})	Remove MIDI mapping ({})
 Аудио: {}	Audio: {}
 {} › вкл/выкл	{} › bypass
-Сейчас звучит: 	Auditioning:
+Сейчас звучит:	Auditioning:
 Цвет корпуса 	Enclosure color
 🎛 MIDI Learn: вкл/выкл	🎛 MIDI Learn: bypass
 MIDI Learn отменён: сообщений не было	MIDI Learn timed out without receiving a message.
@@ -522,3 +522,4 @@ JS-модули работали в Web Audio. В Rust-ядре не испол�
 эхо	echo
 яркий	bright
 яркость	brightness
+🤖 Агент {}	🤖 Agent {}

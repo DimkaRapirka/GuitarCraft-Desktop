@@ -346,7 +346,7 @@ pub fn render_cab(app: JsValue, stage: Element) -> Result<Element, JsValue> {
         let a = a.clone();
         wasm_bindgen_futures::spawn_local(async move {
             let r:Result<(),JsValue>=async{
-        let file=command("file_open",&js(&json!({"title":"Загрузить IR","filters":[{"name":"Impulse response","extensions":["wav","flac","mp3","ogg"]}]}))?).await?;
+        let file=command("file_open",&js(&json!({"title":crate::i18n::text("Загрузить IR"),"filters":[{"name":"Impulse response","extensions":["wav","flac","mp3","ogg"]}]}))?).await?;
         let Some(file)=file.as_string()else{return Ok(())};let dest=command("import_to",&js(&json!({"file":file,"kind":"irs"}))?).await?.as_string().unwrap_or_default();
         let file=dest.rsplit(['/',char::from(92)]).next().unwrap_or(&dest);let name=file.rsplit_once('.').map(|(n,_)|n).unwrap_or(file);
         patch(&a,&format!("IR {file}"),|c|{c["mode"]=json!("ir");c["irPath"]=json!(dest);c["irName"]=json!(name);})

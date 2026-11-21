@@ -73,7 +73,7 @@ fn on_state(kind: String, meta: JsValue) -> Result<(), JsValue> {
             "toast",
             &[
                 if source == "mcp" {
-                    format!("🤖 Агент {label}")
+                    crate::i18n::message("🤖 Агент {}", &[&label])
                 } else {
                     label
                 }

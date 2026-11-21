@@ -218,7 +218,7 @@ async fn select_di(v: String) -> Result<(), JsValue> {
     let engine = get(&a, "engine");
     let files = Array::from(&get(&a, "diList"));
     if v == "__file" {
-        let f=command("file_open",&js(&json!({"title":"DI-запись","filters":[{"name":"Audio","extensions":["wav","mp3","flac","ogg","m4a"]}]}))?).await?;
+        let f=command("file_open",&js(&json!({"title":crate::i18n::text("DI-запись"),"filters":[{"name":"Audio","extensions":["wav","mp3","flac","ogg","m4a"]}]}))?).await?;
         if let Some(file) = f.as_string() {
             resolved(invoke(&engine, "loadDIPath", &[file.clone().into()])?).await?;
             get(&a, "diList").unchecked_into::<Array>().push(&js(

@@ -320,7 +320,8 @@ pub async fn render(app: JsValue, wrap: Element) -> Result<(), JsValue> {
     } else {
         let desc = child(&bar, "span", "amp-desc", "");
         child(&desc, "b", "", text(chan, "name"));
-        desc.append_child(&doc().create_text_node(&format!(" · {}", text(chan, "desc"))))?;
+        let description = crate::i18n::text(text(chan, "desc"));
+        desc.append_child(&doc().create_text_node(&format!(" · {description}")))?;
     }
     child(&bar, "div", "grow", "");
     if edit {
@@ -468,7 +469,7 @@ fn create_page(content: &Element, app: &JsValue) {
                         invoke(
                             &a,
                             "toast",
-                            &["Промпт скопирован: вставьте его в генератор изображений".into()],
+                            &[crate::i18n::text("Промпт скопирован: вставьте его в генератор изображений").into()],
                         )
                         .map(drop)
                     }
@@ -484,7 +485,7 @@ fn create_page(content: &Element, app: &JsValue) {
         let a = app.clone();
         spawn_local(async move {
             report(async{
-        let file=command("file_open",&js(&json!({"title":"PNG с фасадом комбика","filters":[{"name":"PNG","extensions":["png"]}]}))?).await?;if let Some(f)=file.as_string(){close_picker();import_skin(a,f,JsValue::UNDEFINED).await?;}Ok(())
+        let file=command("file_open",&js(&json!({"title":crate::i18n::text("PNG с фасадом комбика"),"filters":[{"name":"PNG","extensions":["png"]}]}))?).await?;if let Some(f)=file.as_string(){close_picker();import_skin(a,f,JsValue::UNDEFINED).await?;}Ok(())
     }.await);
         });
         Ok(())
