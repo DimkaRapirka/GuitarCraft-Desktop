@@ -1,0 +1,1116 @@
+[
+  {
+    "id": "gc.verdant",
+    "name": "Verdant Drive",
+    "type": "Overdrive",
+    "category": "drive",
+    "color": "#3f8f6f",
+    "artwork": "assets/gear/prints/fern.png",
+    "character": [
+      "тёплый",
+      "средний",
+      "горб на середине",
+      "мягкий",
+      "классика",
+      "blues",
+      "warm",
+      "mid hump",
+      "tight",
+      "плотный",
+      "подкрасить усилитель",
+      "для соло"
+    ],
+    "desc": "Зелёный овердрайв с горбом на середине. Подтягивает низ и делает хай-гейн плотнее.",
+    "params": [
+      {
+        "id": "drive",
+        "name": "Drive",
+        "min": 0,
+        "max": 1,
+        "def": 0.35
+      },
+      {
+        "id": "tone",
+        "name": "Tone",
+        "min": 0,
+        "max": 1,
+        "def": 0.55
+      },
+      {
+        "id": "level",
+        "name": "Level",
+        "min": 0,
+        "max": 1,
+        "def": 0.6
+      }
+    ]
+  },
+  {
+    "id": "gc.klar",
+    "name": "Klar Drive",
+    "type": "Overdrive",
+    "category": "drive",
+    "color": "#d8c27a",
+    "character": [
+      "прозрачный",
+      "transparent",
+      "естественный",
+      "открытый",
+      "широкий",
+      "динамичный",
+      "клин буст"
+    ],
+    "desc": "Прозрачный овердрайв: сохраняет низ и характер гитары, добавляет мягкий клиппинг.",
+    "params": [
+      {
+        "id": "gain",
+        "name": "Gain",
+        "min": 0,
+        "max": 1,
+        "def": 0.3
+      },
+      {
+        "id": "bass",
+        "name": "Bass",
+        "min": 0,
+        "max": 1,
+        "def": 0.6
+      },
+      {
+        "id": "tone",
+        "name": "Treble",
+        "min": 0,
+        "max": 1,
+        "def": 0.5
+      },
+      {
+        "id": "level",
+        "name": "Output",
+        "min": 0,
+        "max": 1,
+        "def": 0.55
+      }
+    ]
+  },
+  {
+    "id": "gc.amber",
+    "name": "Amber Boost",
+    "type": "Boost",
+    "category": "drive",
+    "color": "#e08a2c",
+    "character": [
+      "буст",
+      "яркий",
+      "treble booster",
+      "чистый буст",
+      "clean boost",
+      "громче",
+      "для соло",
+      "яркость"
+    ],
+    "desc": "Чистый буст с регулируемым диапазоном: от плоского до классического treble-booster.",
+    "params": [
+      {
+        "id": "level",
+        "name": "Boost",
+        "min": 0,
+        "max": 1,
+        "def": 0.6
+      },
+      {
+        "id": "range",
+        "name": "Range",
+        "min": 0,
+        "max": 1,
+        "def": 0.3
+      }
+    ]
+  },
+  {
+    "id": "gc.ironclad",
+    "name": "Ironclad Dist",
+    "type": "Distortion",
+    "category": "drive",
+    "color": "#2b2b2e",
+    "artwork": "assets/gear/prints/skull.png",
+    "character": [
+      "дисторшн",
+      "агрессивный",
+      "жёсткий",
+      "металл",
+      "aggressive",
+      "hard clip",
+      "панк",
+      "rat",
+      "много гейна"
+    ],
+    "desc": "Жёсткий клиппинг на кремнии: агрессивная середина и много сустейна.",
+    "params": [
+      {
+        "id": "drive",
+        "name": "Distortion",
+        "min": 0,
+        "max": 1,
+        "def": 0.6
+      },
+      {
+        "id": "tone",
+        "name": "Filter",
+        "min": 0,
+        "max": 1,
+        "def": 0.5
+      },
+      {
+        "id": "level",
+        "name": "Volume",
+        "min": 0,
+        "max": 1,
+        "def": 0.5
+      }
+    ]
+  },
+  {
+    "id": "gc.molten",
+    "name": "Molten Fuzz",
+    "type": "Fuzz",
+    "category": "drive",
+    "color": "#a23b2a",
+    "artwork": "assets/gear/prints/volcano.png",
+    "character": [
+      "фузз",
+      "fuzz",
+      "вязкий",
+      "винтаж",
+      "грязный",
+      "толстый",
+      "woolly",
+      "stoner",
+      "дум"
+    ],
+    "desc": "Вязкий асимметричный фузз с огромным низом и рваным распадом.",
+    "params": [
+      {
+        "id": "drive",
+        "name": "Fuzz",
+        "min": 0,
+        "max": 1,
+        "def": 0.7
+      },
+      {
+        "id": "tone",
+        "name": "Tone",
+        "min": 0,
+        "max": 1,
+        "def": 0.4
+      },
+      {
+        "id": "level",
+        "name": "Volume",
+        "min": 0,
+        "max": 1,
+        "def": 0.5
+      }
+    ]
+  },
+  {
+    "id": "gc.fuzz-factory",
+    "name": "Fuzz Factory",
+    "type": "Fuzz",
+    "category": "drive",
+    "color": "#b2cb46",
+    "artwork": "assets/gear/prints/factory-storm.png",
+    "character": [
+      "фузз",
+      "zvex",
+      "германиевый",
+      "гейт",
+      "самовозбуждение",
+      "velcro",
+      "radio",
+      "gated fuzz"
+    ],
+    "desc": "Модель по мотивам ZVEX Fuzz Factory. Gate укорачивает хвост ноты, Comp меняет атаку и характер перегруза. При низком Stab фузз может свистеть даже в паузах.",
+    "params": [
+      {
+        "id": "volume",
+        "name": "Volume",
+        "min": 0,
+        "max": 1,
+        "def": 0.35
+      },
+      {
+        "id": "gate",
+        "name": "Gate",
+        "min": 0,
+        "max": 1,
+        "def": 0.1
+      },
+      {
+        "id": "comp",
+        "name": "Comp",
+        "min": 0,
+        "max": 1,
+        "def": 0.35
+      },
+      {
+        "id": "drive",
+        "name": "Drive",
+        "min": 0,
+        "max": 1,
+        "def": 0.6
+      },
+      {
+        "id": "stab",
+        "name": "Stab",
+        "min": 0,
+        "max": 1,
+        "def": 1
+      }
+    ]
+  },
+  {
+    "id": "gc.crown",
+    "artwork": "assets/gear/prints/crown-ruin.png",
+    "name": "Crown Drive",
+    "type": "Overdrive",
+    "category": "drive",
+    "color": "#3d5aa8",
+    "character": [
+      "кранч",
+      "британский",
+      "плексы",
+      "british",
+      "amp in a box",
+      "рок",
+      "открытый",
+      "яркий"
+    ],
+    "desc": "Британский «усилитель в коробке»: открытый кранч с хрустящей верхней серединой.",
+    "params": [
+      {
+        "id": "drive",
+        "name": "Drive",
+        "min": 0,
+        "max": 1,
+        "def": 0.5
+      },
+      {
+        "id": "bass",
+        "name": "Bass",
+        "min": 0,
+        "max": 1,
+        "def": 0.5
+      },
+      {
+        "id": "tone",
+        "name": "Treble",
+        "min": 0,
+        "max": 1,
+        "def": 0.55
+      },
+      {
+        "id": "level",
+        "name": "Level",
+        "min": 0,
+        "max": 1,
+        "def": 0.5
+      }
+    ]
+  },
+  {
+    "id": "gc.squash",
+    "artwork": "assets/gear/prints/press-vise.png",
+    "name": "Squash Comp",
+    "type": "Compressor",
+    "category": "dynamics",
+    "color": "#c9ccd1",
+    "character": [
+      "компрессор",
+      "ровный",
+      "сустейн",
+      "кантри",
+      "фанк",
+      "clean",
+      "squash",
+      "sustain",
+      "выравнивает"
+    ],
+    "desc": "Студийный компрессор: выравнивает атаку и добавляет сустейн.",
+    "params": [
+      {
+        "id": "comp",
+        "name": "Comp",
+        "min": 0,
+        "max": 1,
+        "def": 0.5
+      },
+      {
+        "id": "attack",
+        "name": "Attack",
+        "min": 0,
+        "max": 1,
+        "def": 0.3
+      },
+      {
+        "id": "level",
+        "name": "Level",
+        "min": 0,
+        "max": 1,
+        "def": 0.5
+      },
+      {
+        "id": "blend",
+        "name": "Blend",
+        "min": 0,
+        "max": 1,
+        "def": 1
+      }
+    ]
+  },
+  {
+    "id": "gc.silencer",
+    "name": "Silencer Gate",
+    "type": "Noise Gate",
+    "category": "dynamics",
+    "color": "#55595f",
+    "artwork": "assets/gear/prints/raven.png",
+    "character": [
+      "гейт",
+      "шумодав",
+      "noise gate",
+      "тишина",
+      "чистые паузы",
+      "tight",
+      "djent",
+      "стаккато"
+    ],
+    "desc": "Второй гейт для любого места цепочки, например после фузза.",
+    "params": [
+      {
+        "id": "threshold",
+        "name": "Threshold",
+        "min": -90,
+        "max": -10,
+        "def": -50,
+        "unit": "дБ"
+      },
+      {
+        "id": "release",
+        "name": "Release",
+        "min": 5,
+        "max": 400,
+        "def": 60,
+        "unit": "мс"
+      }
+    ]
+  },
+  {
+    "id": "gc.quack",
+    "name": "Quack Wah",
+    "type": "Auto-Wah",
+    "category": "filter",
+    "color": "#e8c33a",
+    "character": [
+      "вау",
+      "auto wah",
+      "envelope filter",
+      "фанк",
+      "квакающий",
+      "funk",
+      "реагирует на атаку"
+    ],
+    "desc": "Конвертный фильтр: чем сильнее атака, тем выше открывается вау.",
+    "params": [
+      {
+        "id": "sens",
+        "name": "Sens",
+        "min": 0,
+        "max": 1,
+        "def": 0.5
+      },
+      {
+        "id": "range",
+        "name": "Range",
+        "min": 0,
+        "max": 1,
+        "def": 0.6
+      },
+      {
+        "id": "q",
+        "name": "Peak",
+        "min": 0,
+        "max": 1,
+        "def": 0.6
+      },
+      {
+        "id": "mix",
+        "name": "Mix",
+        "min": 0,
+        "max": 1,
+        "def": 1
+      }
+    ]
+  },
+  {
+    "id": "gc.cocked",
+    "name": "Fixed Wah",
+    "type": "Wah",
+    "category": "filter",
+    "color": "#3a3a3a",
+    "character": [
+      "вау",
+      "wah",
+      "полуоткрытое вау",
+      "cocked wah",
+      "гнусавый",
+      "носовой",
+      "середина",
+      "нос"
+    ],
+    "desc": "Вау в фиксированном положении: гнусавый, режущий тон для соло.",
+    "params": [
+      {
+        "id": "pos",
+        "name": "Position",
+        "min": 0,
+        "max": 1,
+        "def": 0.55
+      },
+      {
+        "id": "q",
+        "name": "Q",
+        "min": 0,
+        "max": 1,
+        "def": 0.5
+      },
+      {
+        "id": "level",
+        "name": "Level",
+        "min": 0,
+        "max": 1,
+        "def": 0.5
+      }
+    ]
+  },
+  {
+    "id": "gc.geq",
+    "name": "Graphic EQ 6",
+    "type": "EQ",
+    "category": "filter",
+    "color": "#e9e9e4",
+    "character": [
+      "эквалайзер",
+      "eq",
+      "графический",
+      "подрезать низ",
+      "mid boost",
+      "tone shaping",
+      "перед усилителем"
+    ],
+    "desc": "6-полосный графический эквалайзер. Удобно ставить перед усилителем, чтобы подрезать низ.",
+    "params": [
+      {
+        "id": "b0",
+        "name": "100",
+        "min": -15,
+        "max": 15,
+        "def": 0,
+        "unit": "дБ"
+      },
+      {
+        "id": "b1",
+        "name": "200",
+        "min": -15,
+        "max": 15,
+        "def": 0,
+        "unit": "дБ"
+      },
+      {
+        "id": "b2",
+        "name": "400",
+        "min": -15,
+        "max": 15,
+        "def": 0,
+        "unit": "дБ"
+      },
+      {
+        "id": "b3",
+        "name": "800",
+        "min": -15,
+        "max": 15,
+        "def": 0,
+        "unit": "дБ"
+      },
+      {
+        "id": "b4",
+        "name": "1.6k",
+        "min": -15,
+        "max": 15,
+        "def": 0,
+        "unit": "дБ"
+      },
+      {
+        "id": "b5",
+        "name": "3.2k",
+        "min": -15,
+        "max": 15,
+        "def": 0,
+        "unit": "дБ"
+      },
+      {
+        "id": "level",
+        "name": "Level",
+        "min": -15,
+        "max": 15,
+        "def": 0,
+        "unit": "дБ"
+      }
+    ]
+  },
+  {
+    "id": "gc.clarinot-clean",
+    "name": "Clari(not) Clean",
+    "type": "Envelope Vibrato",
+    "category": "modulation",
+    "color": "#cfbc73",
+    "artwork": "assets/gear/prints/cassette.png",
+    "character": [
+      "clarinot",
+      "clari(not)",
+      "mid-fi",
+      "midfi",
+      "вибрато",
+      "хорус",
+      "chorus",
+      "wow",
+      "flutter",
+      "магнитофон",
+      "детонация",
+      "огибающая"
+    ],
+    "desc": "Модель GuitarCraft по мотивам чистой Clari(not). Высота повтора реагирует на силу щипка. Blend смешивает его с прямым сигналом, Tracking задаёт чувствительность к атаке.",
+    "params": [
+      {
+        "id": "delay",
+        "name": "Delay",
+        "min": 6,
+        "max": 400,
+        "def": 55,
+        "unit": "мс"
+      },
+      {
+        "id": "depth",
+        "name": "Depth",
+        "min": 0,
+        "max": 1,
+        "def": 0.4
+      },
+      {
+        "id": "blend",
+        "name": "Blend",
+        "min": 0,
+        "max": 1,
+        "def": 0.5
+      },
+      {
+        "id": "tracking",
+        "name": "Tracking",
+        "min": 0,
+        "max": 1,
+        "def": 0.45
+      },
+      {
+        "id": "feedback",
+        "name": "Feedback",
+        "min": 0,
+        "max": 1,
+        "def": 0.18
+      }
+    ]
+  },
+  {
+    "id": "gc.lagoon",
+    "name": "Lagoon Chorus",
+    "type": "Chorus",
+    "category": "modulation",
+    "color": "#4aa3c9",
+    "artwork": "assets/gear/prints/wave.png",
+    "character": [
+      "хорус",
+      "chorus",
+      "водяной",
+      "широкий",
+      "80-е",
+      "шиммер",
+      "clean",
+      "переливы",
+      "wide"
+    ],
+    "desc": "Аналоговый хорус в духе 80-х: глубокая и мягкая модуляция.",
+    "params": [
+      {
+        "id": "rate",
+        "name": "Rate",
+        "min": 0,
+        "max": 1,
+        "def": 0.35
+      },
+      {
+        "id": "depth",
+        "name": "Depth",
+        "min": 0,
+        "max": 1,
+        "def": 0.5
+      },
+      {
+        "id": "mix",
+        "name": "Mix",
+        "min": 0,
+        "max": 1,
+        "def": 0.5
+      }
+    ]
+  },
+  {
+    "id": "gc.jet",
+    "artwork": "assets/gear/prints/jet-phantom.png",
+    "name": "Jet Flanger",
+    "type": "Flanger",
+    "category": "modulation",
+    "color": "#7d63b8",
+    "character": [
+      "флэнжер",
+      "flanger",
+      "самолёт",
+      "реактивный",
+      "jet",
+      "металлический",
+      "свист"
+    ],
+    "desc": "Флэнжер со звуком взлетающего самолёта: резонанс и глубокая свипа.",
+    "params": [
+      {
+        "id": "rate",
+        "name": "Rate",
+        "min": 0,
+        "max": 1,
+        "def": 0.25
+      },
+      {
+        "id": "depth",
+        "name": "Depth",
+        "min": 0,
+        "max": 1,
+        "def": 0.6
+      },
+      {
+        "id": "feedback",
+        "name": "Regen",
+        "min": 0,
+        "max": 1,
+        "def": 0.6
+      },
+      {
+        "id": "mix",
+        "name": "Mix",
+        "min": 0,
+        "max": 1,
+        "def": 0.5
+      }
+    ]
+  },
+  {
+    "id": "gc.orbit",
+    "name": "Orbit Phaser",
+    "type": "Phaser",
+    "category": "modulation",
+    "color": "#e0663a",
+    "artwork": "assets/gear/prints/planet.png",
+    "character": [
+      "фэйзер",
+      "phaser",
+      "фазер",
+      "вращение",
+      "swirl",
+      "фанк",
+      "70-е",
+      "кружится"
+    ],
+    "desc": "4-ступенчатый фэйзер в духе 70-х: тёплое вращение звука.",
+    "params": [
+      {
+        "id": "rate",
+        "name": "Speed",
+        "min": 0,
+        "max": 1,
+        "def": 0.3
+      },
+      {
+        "id": "depth",
+        "name": "Depth",
+        "min": 0,
+        "max": 1,
+        "def": 0.7
+      },
+      {
+        "id": "feedback",
+        "name": "Color",
+        "min": 0,
+        "max": 1,
+        "def": 0.3
+      }
+    ]
+  },
+  {
+    "id": "gc.pulse",
+    "artwork": "assets/gear/prints/night-moth.png",
+    "name": "Pulse Tremolo",
+    "type": "Tremolo",
+    "category": "modulation",
+    "color": "#2f7d4d",
+    "character": [
+      "тремоло",
+      "tremolo",
+      "пульсирующий",
+      "серф",
+      "винтаж",
+      "surf",
+      "качающий",
+      "вибрато громкости"
+    ],
+    "desc": "Оптическое тремоло старых комбиков: пульсация громкости.",
+    "params": [
+      {
+        "id": "rate",
+        "name": "Speed",
+        "min": 0,
+        "max": 1,
+        "def": 0.45
+      },
+      {
+        "id": "depth",
+        "name": "Depth",
+        "min": 0,
+        "max": 1,
+        "def": 0.6
+      },
+      {
+        "id": "shape",
+        "name": "Shape",
+        "min": 0,
+        "max": 1,
+        "def": 0
+      }
+    ]
+  },
+  {
+    "id": "gc.tapeecho",
+    "artwork": "assets/gear/prints/tape-reel.png",
+    "name": "Tape Echo",
+    "type": "Delay",
+    "category": "time",
+    "color": "#8b6b4a",
+    "character": [
+      "дилей",
+      "эхо",
+      "ленточный",
+      "tape",
+      "тёплый",
+      "винтаж",
+      "плывущий",
+      "wow flutter",
+      "slapback"
+    ],
+    "desc": "Ленточное эхо: тёмные повторы, которые слегка плывут.",
+    "params": [
+      {
+        "id": "time",
+        "name": "Time",
+        "min": 40,
+        "max": 900,
+        "def": 330,
+        "unit": "мс"
+      },
+      {
+        "id": "feedback",
+        "name": "Repeats",
+        "min": 0,
+        "max": 1,
+        "def": 0.4
+      },
+      {
+        "id": "mix",
+        "name": "Mix",
+        "min": 0,
+        "max": 1,
+        "def": 0.35
+      },
+      {
+        "id": "wow",
+        "name": "Wow",
+        "min": 0,
+        "max": 1,
+        "def": 0.3
+      }
+    ]
+  },
+  {
+    "id": "gc.crystal",
+    "artwork": "assets/gear/prints/crystal-geode.png",
+    "name": "Crystal Delay",
+    "type": "Delay",
+    "category": "time",
+    "color": "#8fd3e8",
+    "character": [
+      "цифровой",
+      "дилей",
+      "digital",
+      "чистые повторы",
+      "кристальный",
+      "ambient",
+      "точный"
+    ],
+    "desc": "Цифровой дилей с чистыми, точными повторами.",
+    "params": [
+      {
+        "id": "time",
+        "name": "Time",
+        "min": 40,
+        "max": 1500,
+        "def": 450,
+        "unit": "мс"
+      },
+      {
+        "id": "feedback",
+        "name": "Feedback",
+        "min": 0,
+        "max": 1,
+        "def": 0.35
+      },
+      {
+        "id": "mix",
+        "name": "Mix",
+        "min": 0,
+        "max": 1,
+        "def": 0.3
+      }
+    ]
+  },
+  {
+    "id": "gc.spring",
+    "artwork": "assets/gear/prints/rain-gargoyle.png",
+    "name": "Drip Spring",
+    "type": "Reverb",
+    "category": "time",
+    "color": "#3b6e8f",
+    "character": [
+      "пружинный",
+      "spring",
+      "ревер",
+      "серф",
+      "винтаж",
+      "капающий",
+      "reverb",
+      "twang"
+    ],
+    "desc": "Пружинный ревербератор: капающий, «серфовый» хвост.",
+    "params": [
+      {
+        "id": "dwell",
+        "name": "Dwell",
+        "min": 0,
+        "max": 1,
+        "def": 0.5
+      },
+      {
+        "id": "tone",
+        "name": "Tone",
+        "min": 0,
+        "max": 1,
+        "def": 0.5
+      },
+      {
+        "id": "mix",
+        "name": "Mix",
+        "min": 0,
+        "max": 1,
+        "def": 0.35
+      }
+    ]
+  },
+  {
+    "id": "gc.cathedral",
+    "name": "Cathedral",
+    "type": "Reverb",
+    "category": "time",
+    "color": "#cfc7b8",
+    "artwork": "assets/gear/prints/cathedral.png",
+    "character": [
+      "холл",
+      "hall",
+      "огромный",
+      "эмбиент",
+      "ambient",
+      "космос",
+      "пространство",
+      "shoegaze",
+      "длинный хвост"
+    ],
+    "desc": "Огромный холл для эмбиента и шугейза.",
+    "params": [
+      {
+        "id": "decay",
+        "name": "Decay",
+        "min": 0,
+        "max": 1,
+        "def": 0.6
+      },
+      {
+        "id": "tone",
+        "name": "Tone",
+        "min": 0,
+        "max": 1,
+        "def": 0.6
+      },
+      {
+        "id": "mix",
+        "name": "Mix",
+        "min": 0,
+        "max": 1,
+        "def": 0.4
+      }
+    ]
+  },
+  {
+    "id": "gc.sub",
+    "artwork": "assets/gear/prints/abyss-fish.png",
+    "name": "Sub Octave",
+    "type": "Octaver",
+    "category": "pitch",
+    "color": "#1f3b5c",
+    "character": [
+      "октавер",
+      "octave",
+      "октава вниз",
+      "бас",
+      "sub",
+      "жирный",
+      "синт"
+    ],
+    "desc": "Октава вниз: добавляет «басовую» подложку под одиночные ноты.",
+    "params": [
+      {
+        "id": "down",
+        "name": "Sub",
+        "min": 0,
+        "max": 1,
+        "def": 0.6
+      },
+      {
+        "id": "dry",
+        "name": "Dry",
+        "min": 0,
+        "max": 1,
+        "def": 0.8
+      }
+    ]
+  },
+  {
+    "id": "gc.lofi",
+    "name": "Lo-Fi Crusher",
+    "type": "Bitcrusher",
+    "category": "utility",
+    "color": "#9aa35a",
+    "character": [
+      "лоу-фай",
+      "lofi",
+      "биткрашер",
+      "грязь",
+      "8-бит",
+      "ретро",
+      "радио",
+      "цифровой"
+    ],
+    "desc": "Понижает разрядность и частоту дискретизации: 8-битная грязь и радиотон.",
+    "params": [
+      {
+        "id": "bits",
+        "name": "Bits",
+        "min": 3,
+        "max": 16,
+        "def": 8
+      },
+      {
+        "id": "rate",
+        "name": "Rate",
+        "min": 1,
+        "max": 30,
+        "def": 6
+      },
+      {
+        "id": "mix",
+        "name": "Mix",
+        "min": 0,
+        "max": 1,
+        "def": 0.6
+      }
+    ]
+  },
+  {
+    "id": "gc.ring",
+    "name": "Ring Planet",
+    "type": "Ring Modulator",
+    "category": "modulation",
+    "color": "#5b3fa0",
+    "character": [
+      "ринг-модулятор",
+      "ring mod",
+      "металлический",
+      "колокольный",
+      "синт",
+      "экспериментальный"
+    ],
+    "desc": "Кольцевая модуляция: металлические колокольные обертоны.",
+    "params": [
+      {
+        "id": "freq",
+        "name": "Freq",
+        "min": 0,
+        "max": 1,
+        "def": 0.4
+      },
+      {
+        "id": "mix",
+        "name": "Mix",
+        "min": 0,
+        "max": 1,
+        "def": 0.5
+      }
+    ]
+  },
+  {
+    "id": "gc.volume",
+    "name": "Volume",
+    "type": "Volume",
+    "category": "utility",
+    "color": "#444a52",
+    "character": [
+      "громкость",
+      "volume",
+      "педаль громкости",
+      "уровень",
+      "level"
+    ],
+    "desc": "Педаль громкости.",
+    "params": [
+      {
+        "id": "level",
+        "name": "Level",
+        "min": -40,
+        "max": 12,
+        "def": 0,
+        "unit": "дБ"
+      }
+    ]
+  }
+]

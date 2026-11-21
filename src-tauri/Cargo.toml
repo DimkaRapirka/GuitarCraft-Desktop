@@ -1,0 +1,33 @@
+[package]
+name = "guitarcraft"
+version = "0.9.0"
+edition = "2021"
+description = "GuitarCraft — desktop electric guitar amp & pedal workstation (Rust core)"
+
+[build-dependencies]
+wasm-bindgen-cli-support = "=0.2.130"
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+gc-model = { path = "../crates/gc-model" }
+gc-dsp = { path = "../crates/gc-dsp" }
+tauri = { version = "2", features = ["protocol-asset"] }
+tauri-plugin-dialog = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+cpal = "0.15"
+midir = "0.10"
+hound = "3"
+image = { version = "0.25", default-features = false, features = ["png", "jpeg", "webp"] }
+symphonia = { version = "0.5", features = ["mp3", "flac", "vorbis", "wav", "pcm"] }
+crossbeam-channel = "0.5"
+rtrb = "0.3"
+parking_lot = "0.12"
+tiny_http = "0.12"
+tempfile = "3"
+dirs = "5"
+getrandom = "0.3"
+arboard = { version = "3", default-features = false }
+
+[features]
+custom-protocol = ["tauri/custom-protocol"]

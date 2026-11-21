@@ -1,0 +1,122 @@
+{
+  "format": "guitarcraft-preset",
+  "version": 1,
+  "name": "Default",
+  "favorite": false,
+  "input": {
+    "gain": 0,
+    "transpose": 0,
+    "gate": {
+      "on": true,
+      "threshold": -62,
+      "release": 80
+    }
+  },
+  "chain": [
+    {
+      "uid": "amp",
+      "kind": "amp"
+    },
+    {
+      "uid": "cab",
+      "kind": "cab"
+    },
+    {
+      "uid": "eq",
+      "kind": "eq"
+    },
+    {
+      "uid": "delay",
+      "kind": "delay"
+    },
+    {
+      "uid": "reverb",
+      "kind": "reverb"
+    }
+  ],
+  "amp": {
+    "on": true,
+    "channel": "crunch",
+    "channels": {
+      "clean": {
+        "gain": 0.35,
+        "bass": 0.5,
+        "mid": 0.5,
+        "treble": 0.55,
+        "presence": 0.5,
+        "master": 0.55
+      },
+      "crunch": {
+        "gain": 0.5,
+        "bass": 0.5,
+        "mid": 0.5,
+        "treble": 0.5,
+        "presence": 0.5,
+        "master": 0.5
+      },
+      "rhythm": {
+        "gain": 0.6,
+        "bass": 0.5,
+        "mid": 0.45,
+        "treble": 0.5,
+        "presence": 0.5,
+        "master": 0.5
+      },
+      "lead": {
+        "gain": 0.65,
+        "bass": 0.5,
+        "mid": 0.6,
+        "treble": 0.5,
+        "presence": 0.5,
+        "master": 0.5
+      }
+    }
+  },
+  "cab": {
+    "on": true,
+    "model": "4x12-v",
+    "mic": "dyn57",
+    "position": 0.3,
+    "distance": 0.2,
+    "level": 0.5,
+    "mode": "model",
+    "irPath": null,
+    "irName": null
+  },
+  "eq": {
+    "on": true,
+    "lowcut": 20,
+    "low": 0,
+    "lowmid": 0,
+    "mid": 0,
+    "highmid": 0,
+    "high": 0,
+    "highcut": 20000
+  },
+  "delay": {
+    "on": false,
+    "sync": "off",
+    "time": 380,
+    "feedback": 0.35,
+    "mix": 0.25,
+    "tone": 0.5,
+    "mod": 0.15
+  },
+  "reverb": {
+    "on": true,
+    "decay": 2.2,
+    "predelay": 15,
+    "mix": 0.12,
+    "tone": 0.55,
+    "lowcut": 200
+  },
+  "output": {
+    "gain": 0,
+    "doubler": {
+      "on": false,
+      "spread": 12
+    }
+  },
+  "skin": "ember",
+  "headSkin": "ironhead"
+}

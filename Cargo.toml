@@ -1,0 +1,17 @@
+[workspace]
+resolver = "2"
+members = ["crates/gc-model", "crates/gc-ui", "crates/gc-dsp", "crates/gc-mcp", "src-tauri"]
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+
+[profile.dev.package."*"]
+opt-level = 3
+
+[profile.dev.package.gc-dsp]
+opt-level = 3
+
+[profile.dev.package.guitarcraft]
+opt-level = 2

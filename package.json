@@ -1,0 +1,19 @@
+{
+  "name": "guitarcraft",
+  "version": "0.9.0",
+  "description": "GuitarCraft — desktop electric guitar amp & pedal workstation (Rust core + Tauri)",
+  "type": "commonjs",
+  "scripts": {
+    "start": "cargo run --release -p guitarcraft",
+    "build": "cargo build --release -p guitarcraft -p gc-mcp",
+    "mcp": "./target/release/guitarcraft-mcp",
+    "render": "cargo run --release -p gc-dsp --example render --",
+    "bundle": "node tools/package.mjs"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "@tauri-apps/cli": "2.12.6",
+    "zod": "^4.6.7"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "guitarcraft": {
+      "command": "./target/release/guitarcraft-mcp",
+      "args": []
+    }
+  }
+}

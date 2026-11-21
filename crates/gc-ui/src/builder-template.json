@@ -1,0 +1,66 @@
+{
+  "name": "Моя педаль",
+  "type": "Overdrive",
+  "category": "drive",
+  "color": "#b5562f",
+  "character": [
+    "мой звук"
+  ],
+  "desc": "Собрана в конструкторе GuitarCraft",
+  "knobs": [
+    {
+      "id": "drive",
+      "name": "Drive",
+      "def": 0.5
+    },
+    {
+      "id": "tone",
+      "name": "Tone",
+      "def": 0.5
+    },
+    {
+      "id": "level",
+      "name": "Level",
+      "def": 0.5
+    }
+  ],
+  "blocks": [
+    {
+      "type": "filter",
+      "mode": "highpass",
+      "freq": 250,
+      "q": 0.7,
+      "gain": 0
+    },
+    {
+      "type": "drive",
+      "curve": "asym",
+      "amount": {
+        "knob": "drive",
+        "from": 2,
+        "to": 60,
+        "exp": true
+      }
+    },
+    {
+      "type": "filter",
+      "mode": "lowpass",
+      "freq": {
+        "knob": "tone",
+        "from": 1200,
+        "to": 9000,
+        "exp": true
+      },
+      "q": 0.7,
+      "gain": 0
+    },
+    {
+      "type": "gain",
+      "db": {
+        "knob": "level",
+        "from": -18,
+        "to": 6
+      }
+    }
+  ]
+}

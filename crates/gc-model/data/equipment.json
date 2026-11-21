@@ -1,0 +1,600 @@
+{
+  "categories": [
+    {
+      "id": "drive",
+      "name": "Драйв",
+      "en": "drive overdrive distortion fuzz boost"
+    },
+    {
+      "id": "dynamics",
+      "name": "Динамика",
+      "en": "dynamics compressor gate"
+    },
+    {
+      "id": "filter",
+      "name": "Фильтры и EQ",
+      "en": "filter wah eq"
+    },
+    {
+      "id": "modulation",
+      "name": "Модуляция",
+      "en": "modulation chorus flanger phaser tremolo"
+    },
+    {
+      "id": "time",
+      "name": "Delay и Reverb",
+      "en": "delay echo reverb ambient"
+    },
+    {
+      "id": "pitch",
+      "name": "Питч",
+      "en": "pitch octave"
+    },
+    {
+      "id": "utility",
+      "name": "Утилиты",
+      "en": "utility volume lofi"
+    }
+  ],
+  "blockTypes": {
+    "gain": {
+      "name": "Громкость",
+      "fields": [
+        {
+          "id": "db",
+          "name": "Уровень, дБ",
+          "min": -24,
+          "max": 24,
+          "def": 0
+        }
+      ]
+    },
+    "filter": {
+      "name": "Фильтр",
+      "fields": [
+        {
+          "id": "mode",
+          "name": "Тип",
+          "options": [
+            "lowpass",
+            "highpass",
+            "bandpass",
+            "peaking",
+            "lowshelf",
+            "highshelf",
+            "notch"
+          ],
+          "def": "lowpass"
+        },
+        {
+          "id": "freq",
+          "name": "Частота, Гц",
+          "min": 20,
+          "max": 16000,
+          "def": 1000,
+          "exp": true
+        },
+        {
+          "id": "q",
+          "name": "Q",
+          "min": 0.3,
+          "max": 12,
+          "def": 0.7
+        },
+        {
+          "id": "gain",
+          "name": "Усиление, дБ",
+          "min": -18,
+          "max": 18,
+          "def": 0
+        }
+      ]
+    },
+    "drive": {
+      "name": "Перегруз",
+      "fields": [
+        {
+          "id": "curve",
+          "name": "Кривая",
+          "options": [
+            "soft",
+            "asym",
+            "tube",
+            "diode",
+            "hard",
+            "fuzz"
+          ],
+          "def": "soft"
+        },
+        {
+          "id": "amount",
+          "name": "Драйв ×",
+          "min": 1,
+          "max": 100,
+          "def": 8,
+          "exp": true
+        }
+      ]
+    },
+    "delay": {
+      "name": "Задержка",
+      "fields": [
+        {
+          "id": "time",
+          "name": "Время, мс",
+          "min": 1,
+          "max": 1500,
+          "def": 300
+        },
+        {
+          "id": "feedback",
+          "name": "Повторы",
+          "min": 0,
+          "max": 0.95,
+          "def": 0.3
+        },
+        {
+          "id": "mix",
+          "name": "Микс",
+          "min": 0,
+          "max": 1,
+          "def": 0.3
+        }
+      ]
+    },
+    "tremolo": {
+      "name": "Тремоло",
+      "fields": [
+        {
+          "id": "rate",
+          "name": "Скорость, Гц",
+          "min": 0.2,
+          "max": 15,
+          "def": 5
+        },
+        {
+          "id": "depth",
+          "name": "Глубина",
+          "min": 0,
+          "max": 1,
+          "def": 0.5
+        }
+      ]
+    },
+    "ring": {
+      "name": "Ринг-модулятор",
+      "fields": [
+        {
+          "id": "freq",
+          "name": "Частота, Гц",
+          "min": 20,
+          "max": 2000,
+          "def": 200,
+          "exp": true
+        },
+        {
+          "id": "mix",
+          "name": "Микс",
+          "min": 0,
+          "max": 1,
+          "def": 0.5
+        }
+      ]
+    },
+    "chorus": {
+      "name": "Модуляция",
+      "fields": [
+        {
+          "id": "rate",
+          "name": "Скорость, Гц",
+          "min": 0.05,
+          "max": 8,
+          "def": 0.8
+        },
+        {
+          "id": "depth",
+          "name": "Глубина",
+          "min": 0,
+          "max": 1,
+          "def": 0.5
+        },
+        {
+          "id": "mix",
+          "name": "Микс",
+          "min": 0,
+          "max": 1,
+          "def": 0.5
+        }
+      ]
+    }
+  },
+  "cabs": {
+    "1x12-open": {
+      "name": "1×12 Open Back",
+      "desc": "Открытый 1×12, воздушный, лёгкий низ",
+      "res": 105,
+      "resGain": 2,
+      "hp": 80,
+      "peaks": [
+        [
+          1800,
+          2,
+          1.2
+        ],
+        [
+          3400,
+          3,
+          2
+        ]
+      ],
+      "lp": 6200,
+      "lpQ": 0.9,
+      "dip": [
+        700,
+        -2,
+        1
+      ]
+    },
+    "2x12-chime": {
+      "name": "2×12 Chime",
+      "desc": "Звонкий 2×12, яркая верхняя середина",
+      "res": 100,
+      "resGain": 3,
+      "hp": 75,
+      "peaks": [
+        [
+          2600,
+          4,
+          1.6
+        ],
+        [
+          4800,
+          2,
+          2.5
+        ]
+      ],
+      "lp": 7000,
+      "lpQ": 1.1,
+      "dip": [
+        500,
+        -3,
+        1
+      ]
+    },
+    "4x12-v": {
+      "name": "4×12 Vintage 30",
+      "desc": "Закрытый 4×12, плотный низ, агрессивная середина",
+      "res": 92,
+      "resGain": 5,
+      "hp": 70,
+      "peaks": [
+        [
+          1400,
+          2,
+          1
+        ],
+        [
+          2900,
+          5,
+          1.8
+        ]
+      ],
+      "lp": 5400,
+      "lpQ": 1.4,
+      "dip": [
+        380,
+        -2.5,
+        1.2
+      ]
+    },
+    "4x12-g": {
+      "name": "4×12 Greenback",
+      "desc": "Тёплый британский 4×12, мягкий верх",
+      "res": 98,
+      "resGain": 4,
+      "hp": 70,
+      "peaks": [
+        [
+          1200,
+          3,
+          1
+        ],
+        [
+          2400,
+          2,
+          1.5
+        ]
+      ],
+      "lp": 4800,
+      "lpQ": 1,
+      "dip": [
+        450,
+        -1.5,
+        1
+      ]
+    },
+    "1x10-tiny": {
+      "name": "1×10 Tweed",
+      "desc": "Маленький твид-комбик, гнусавый и винтажный",
+      "res": 140,
+      "resGain": 3,
+      "hp": 110,
+      "peaks": [
+        [
+          1000,
+          4,
+          0.9
+        ],
+        [
+          2200,
+          2,
+          1.4
+        ]
+      ],
+      "lp": 4500,
+      "lpQ": 0.8,
+      "dip": [
+        300,
+        -3,
+        1
+      ]
+    }
+  },
+  "mics": {
+    "dyn57": {
+      "name": "Dynamic 57",
+      "desc": "Классический динамический, плотная середина",
+      "hp": 90,
+      "peak": [
+        5200,
+        4,
+        1.4
+      ],
+      "shelf": [
+        9000,
+        -6
+      ],
+      "prox": 3
+    },
+    "ribbon121": {
+      "name": "Ribbon 121",
+      "desc": "Ленточный, тёмный и гладкий",
+      "hp": 40,
+      "peak": [
+        1200,
+        1,
+        0.7
+      ],
+      "shelf": [
+        5000,
+        -7
+      ],
+      "prox": 6
+    },
+    "cond414": {
+      "name": "Condenser 414",
+      "desc": "Конденсаторный, открытый верх",
+      "hp": 50,
+      "peak": [
+        8000,
+        3,
+        0.8
+      ],
+      "shelf": [
+        11000,
+        2
+      ],
+      "prox": 2
+    },
+    "dyn421": {
+      "name": "Dynamic 421",
+      "desc": "Динамический, плотный низ и чёткая атака",
+      "hp": 70,
+      "peak": [
+        4000,
+        3,
+        1
+      ],
+      "shelf": [
+        8000,
+        -4
+      ],
+      "prox": 4
+    }
+  },
+  "channels": {
+    "clean": {
+      "name": "Clean",
+      "color": "#7cc4c8",
+      "desc": "Чистый, упругий, с запасом по громкости"
+    },
+    "crunch": {
+      "name": "Crunch",
+      "color": "#e3a248",
+      "desc": "Британский кранч, отзывчив к атаке"
+    },
+    "rhythm": {
+      "name": "Rhythm",
+      "color": "#d9553b",
+      "desc": "Плотный хай-гейн для риффов, собранный низ"
+    },
+    "lead": {
+      "name": "Lead",
+      "color": "#b46ad8",
+      "desc": "Певучий лид, жирная середина, длинный сустейн"
+    }
+  },
+  "params": {
+    "amp": [
+      {
+        "id": "gain",
+        "name": "Gain",
+        "def": 0.5
+      },
+      {
+        "id": "bass",
+        "name": "Bass",
+        "def": 0.5
+      },
+      {
+        "id": "mid",
+        "name": "Middle",
+        "def": 0.5
+      },
+      {
+        "id": "treble",
+        "name": "Treble",
+        "def": 0.5
+      },
+      {
+        "id": "presence",
+        "name": "Presence",
+        "def": 0.5
+      },
+      {
+        "id": "master",
+        "name": "Master",
+        "def": 0.5
+      }
+    ],
+    "eq": [
+      {
+        "id": "lowcut",
+        "name": "Low Cut",
+        "min": 20,
+        "max": 400,
+        "def": 20,
+        "unit": "Гц",
+        "log": true
+      },
+      {
+        "id": "low",
+        "name": "Low 100",
+        "min": -12,
+        "max": 12,
+        "def": 0,
+        "unit": "дБ"
+      },
+      {
+        "id": "lowmid",
+        "name": "Lo-Mid 400",
+        "min": -12,
+        "max": 12,
+        "def": 0,
+        "unit": "дБ"
+      },
+      {
+        "id": "mid",
+        "name": "Mid 1k",
+        "min": -12,
+        "max": 12,
+        "def": 0,
+        "unit": "дБ"
+      },
+      {
+        "id": "highmid",
+        "name": "Hi-Mid 2.5k",
+        "min": -12,
+        "max": 12,
+        "def": 0,
+        "unit": "дБ"
+      },
+      {
+        "id": "high",
+        "name": "High 6k",
+        "min": -12,
+        "max": 12,
+        "def": 0,
+        "unit": "дБ"
+      },
+      {
+        "id": "highcut",
+        "name": "High Cut",
+        "min": 2000,
+        "max": 20000,
+        "def": 20000,
+        "unit": "Гц",
+        "log": true
+      }
+    ],
+    "delay": [
+      {
+        "id": "time",
+        "name": "Time",
+        "min": 20,
+        "max": 3000,
+        "def": 380,
+        "unit": "мс"
+      },
+      {
+        "id": "feedback",
+        "name": "Feedback",
+        "min": 0,
+        "max": 0.95,
+        "def": 0.35
+      },
+      {
+        "id": "mix",
+        "name": "Mix",
+        "min": 0,
+        "max": 1,
+        "def": 0.25
+      },
+      {
+        "id": "tone",
+        "name": "Tone",
+        "min": 0,
+        "max": 1,
+        "def": 0.5
+      },
+      {
+        "id": "mod",
+        "name": "Mod",
+        "min": 0,
+        "max": 1,
+        "def": 0.15
+      }
+    ],
+    "reverb": [
+      {
+        "id": "decay",
+        "name": "Decay",
+        "min": 0.3,
+        "max": 8,
+        "def": 2.2,
+        "unit": "с"
+      },
+      {
+        "id": "predelay",
+        "name": "Pre-Delay",
+        "min": 0,
+        "max": 120,
+        "def": 15,
+        "unit": "мс"
+      },
+      {
+        "id": "mix",
+        "name": "Mix",
+        "min": 0,
+        "max": 1,
+        "def": 0.2
+      },
+      {
+        "id": "tone",
+        "name": "Tone",
+        "min": 0,
+        "max": 1,
+        "def": 0.55
+      },
+      {
+        "id": "lowcut",
+        "name": "Low Cut",
+        "min": 40,
+        "max": 800,
+        "def": 200,
+        "unit": "Гц",
+        "log": true
+      }
+    ]
+  }
+}

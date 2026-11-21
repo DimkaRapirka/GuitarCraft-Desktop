@@ -1,0 +1,11 @@
+node_modules/
+recordings/.tmp/
+research/*.cany/
+.DS_Store
+target/
+
+src-tauri/binaries/
+
+app/wasm/
+
+/local-skins/

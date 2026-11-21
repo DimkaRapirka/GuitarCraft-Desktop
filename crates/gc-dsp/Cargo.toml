@@ -1,0 +1,12 @@
+[package]
+name = "gc-dsp"
+version = "0.9.0"
+edition = "2021"
+description = "GuitarCraft DSP: amp, cab, pedals, racks"
+
+[dependencies]
+realfft = "3"
+serde_json = "1"
+
+[dev-dependencies]
+hound = "3"

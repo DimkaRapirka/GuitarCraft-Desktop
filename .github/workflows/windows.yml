@@ -1,0 +1,39 @@
+name: Windows installer
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths-ignore: ['**.md', 'docs/**', 'recordings/**', 'research/**']
+permissions:
+  contents: read
+jobs:
+  package:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: rustup target add wasm32-unknown-unknown
+      - run: npm ci
+      - run: cargo test --release --locked -p gc-model -p gc-dsp -p gc-mcp
+      - run: npm run bundle
+      - name: Verify installed application and sidecar
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $setup = (Get-ChildItem target/release/bundle/nsis/*-setup.exe).FullName
+          $dest = Join-Path $env:RUNNER_TEMP 'GuitarCraft'
+          $p = Start-Process $setup -ArgumentList '/S',"/D=$dest" -PassThru -Wait
+          if ($p.ExitCode -ne 0) { throw "NSIS exit $($p.ExitCode)" }
+          $app = Get-ChildItem $dest -Filter guitarcraft.exe
+          if (!$app) { throw 'App missing after installation' }
+          $init = '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}' | & "$dest/guitarcraft-mcp.exe"
+          if (($init | ConvertFrom-Json).result.serverInfo.name -ne 'guitarcraft') { throw 'MCP handshake failed' }
+          node tools/check-desktop.mjs $app.FullName
+          if ($LASTEXITCODE -ne 0) { throw 'Desktop verification failed' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GuitarCraft-Windows-x64
+          path: target/release/bundle/nsis/*-setup.exe
+          if-no-files-found: error

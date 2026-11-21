@@ -1,0 +1,72 @@
+[
+  {
+    "id": "ironhead",
+    "name": "Iron Head",
+    "image": "assets/skins/skin_ironhead.png",
+    "panel": {
+      "x0": 0.07,
+      "x1": 0.94,
+      "y": 0.666
+    },
+    "knob": 0.062,
+    "text": "#f1e3cf",
+    "ring": "#ea834d",
+    "pointer": "#ffffff"
+  },
+  {
+    "id": "ember",
+    "name": "Ember 60s",
+    "image": "assets/skins/skin_ember.png",
+    "panel": {
+      "x0": 0.08,
+      "x1": 0.92,
+      "y": 0.225
+    },
+    "knob": 0.062,
+    "text": "#3a2508",
+    "ring": "#7a2a18",
+    "pointer": "#f6e7c8"
+  },
+  {
+    "id": "midnight",
+    "name": "Midnight High-Gain",
+    "image": "assets/skins/skin_midnight.png",
+    "panel": {
+      "x0": 0.08,
+      "x1": 0.92,
+      "y": 0.205
+    },
+    "knob": 0.062,
+    "text": "#d8d8de",
+    "ring": "#ff5a3a",
+    "pointer": "#ffffff"
+  },
+  {
+    "id": "seafoam",
+    "name": "Seafoam Surf",
+    "image": "assets/skins/skin_seafoam.png",
+    "panel": {
+      "x0": 0.08,
+      "x1": 0.92,
+      "y": 0.22
+    },
+    "knob": 0.062,
+    "text": "#24302c",
+    "ring": "#1f7a6a",
+    "pointer": "#fffbe8"
+  },
+  {
+    "id": "walnut",
+    "name": "Walnut Boutique",
+    "image": "assets/skins/skin_walnut.png",
+    "panel": {
+      "x0": 0.115,
+      "x1": 0.895,
+      "y": 0.215
+    },
+    "knob": 0.062,
+    "text": "#2a140a",
+    "ring": "#f7e2c2",
+    "pointer": "#f7e2c2"
+  }
+]

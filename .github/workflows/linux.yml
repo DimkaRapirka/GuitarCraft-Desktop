@@ -1,0 +1,41 @@
+name: Linux installer
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  package:
+    runs-on: ubuntu-22.04
+    env:
+      NO_AT_BRIDGE: '1'
+      WEBKIT_DISABLE_DMABUF_RENDERER: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: Swatinem/rust-cache@v2
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev libxdo-dev libasound2-dev xvfb pulseaudio
+      - run: rustup target add wasm32-unknown-unknown
+      - run: npm ci
+      - run: npm run bundle
+      - name: Verify installed package
+        run: |
+          set -e
+          deb=$(find target/release/bundle/deb -name '*.deb' -print -quit)
+          test "$(dpkg-deb -f "$deb" Architecture)" = amd64
+          sudo apt-get install -y "./$deb"
+          handshake=$(printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}' | guitarcraft-mcp)
+          jq -e '.result.serverInfo.name == "guitarcraft"' <<< "$handshake"
+          pulseaudio --start --exit-idle-time=-1
+          pactl load-module module-null-sink sink_name=guitarcraft_qa
+          pactl set-default-sink guitarcraft_qa
+          dbus-run-session -- xvfb-run -a node tools/check-desktop.mjs "$(command -v guitarcraft)"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GuitarCraft-Linux-x64
+          path: target/release/bundle/deb/*.deb
+          if-no-files-found: error

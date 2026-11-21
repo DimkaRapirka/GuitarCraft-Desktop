@@ -1,0 +1,172 @@
+[
+  {
+    "name": "Clean — Glass",
+    "chain": [
+      {
+        "kind": "pedal",
+        "pedal": "gc.squash",
+        "on": true,
+        "params": {
+          "comp": 0.45
+        }
+      },
+      {
+        "uid": "amp",
+        "kind": "amp"
+      },
+      {
+        "uid": "cab",
+        "kind": "cab"
+      },
+      {
+        "uid": "eq",
+        "kind": "eq"
+      },
+      {
+        "uid": "delay",
+        "kind": "delay"
+      },
+      {
+        "uid": "reverb",
+        "kind": "reverb"
+      }
+    ],
+    "amp": {
+      "channel": "clean"
+    },
+    "cab": {
+      "model": "2x12-chime",
+      "mic": "cond414"
+    },
+    "delay": {
+      "on": true,
+      "mix": 0.18
+    },
+    "reverb": {
+      "mix": 0.22
+    },
+    "factory": true
+  },
+  {
+    "name": "Crunch — Brit",
+    "amp": {
+      "channels": {
+        "crunch": {
+          "gain": 0.6
+        }
+      }
+    },
+    "cab": {
+      "model": "4x12-g"
+    },
+    "reverb": {
+      "mix": 0.1
+    },
+    "factory": true
+  },
+  {
+    "name": "Rhythm — Tight",
+    "input": {
+      "gate": {
+        "threshold": -55
+      }
+    },
+    "chain": [
+      {
+        "kind": "pedal",
+        "pedal": "gc.verdant",
+        "on": true,
+        "params": {
+          "drive": 0.1,
+          "tone": 0.55,
+          "level": 0.75
+        }
+      },
+      {
+        "uid": "amp",
+        "kind": "amp"
+      },
+      {
+        "uid": "cab",
+        "kind": "cab"
+      },
+      {
+        "uid": "eq",
+        "kind": "eq"
+      },
+      {
+        "uid": "delay",
+        "kind": "delay"
+      },
+      {
+        "uid": "reverb",
+        "kind": "reverb"
+      }
+    ],
+    "amp": {
+      "channel": "rhythm",
+      "channels": {
+        "rhythm": {
+          "gain": 0.7,
+          "bass": 0.55,
+          "mid": 0.4,
+          "treble": 0.6
+        }
+      }
+    },
+    "reverb": {
+      "mix": 0.06
+    },
+    "factory": true
+  },
+  {
+    "name": "Rhythm — Raw",
+    "input": {
+      "gate": {
+        "threshold": -55
+      }
+    },
+    "amp": {
+      "channel": "rhythm",
+      "channels": {
+        "rhythm": {
+          "gain": 0.62,
+          "bass": 0.78,
+          "mid": 0.42,
+          "treble": 0.55
+        }
+      }
+    },
+    "cab": {
+      "mic": "ribbon121",
+      "distance": 0.02
+    },
+    "reverb": {
+      "mix": 0.07
+    },
+    "factory": true
+  },
+  {
+    "name": "Lead — Singing",
+    "amp": {
+      "channel": "lead",
+      "channels": {
+        "lead": {
+          "gain": 0.7
+        }
+      }
+    },
+    "cab": {
+      "mic": "ribbon121"
+    },
+    "delay": {
+      "on": true,
+      "time": 420,
+      "mix": 0.28
+    },
+    "reverb": {
+      "mix": 0.2
+    },
+    "factory": true
+  }
+]

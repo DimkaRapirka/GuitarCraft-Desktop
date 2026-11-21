@@ -1,0 +1,3 @@
+Front view of an original guitar combo amplifier (fictional brand, no real logos or brand names), {style}.
+Landscape 3:2 image (1536×1024), amp centered and filling ~90% of the width, straight-on orthographic front view, soft studio lighting, dark seamless background.
+IMPORTANT LAYOUT: the top ~28% of the amp is a control panel strip that is COMPLETELY EMPTY — a clean flat plate with no knobs, no switches, no text, no jacks (the GuitarCraft app overlays 6 knobs and a 4-way channel switch in a row across this strip, at about 20% of the image height). Below the panel: speaker grille cloth. Photorealistic, high detail, no people.

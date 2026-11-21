@@ -1,0 +1,49 @@
+{
+  "synonyms": {
+    "Overdrive": "овердрайв перегруз драйв od overdrive drive",
+    "Distortion": "дисторшн дисторшен перегруз distortion dist",
+    "Fuzz": "фузз фуз fuzz",
+    "Boost": "буст бустер boost",
+    "Compressor": "компрессор комп compressor comp",
+    "Noise Gate": "гейт шумодав noise gate",
+    "Auto-Wah": "автовау вау фильтр envelope",
+    "Wah": "вау квакушка wah",
+    "EQ": "эквалайзер эк eq equalizer",
+    "Chorus": "хорус chorus",
+    "Flanger": "флэнжер фленджер flanger",
+    "Phaser": "фэйзер фейзер фазер phaser",
+    "Tremolo": "тремоло tremolo",
+    "Delay": "дилей задержка эхо delay echo",
+    "Reverb": "реверб ревер реверберация reverb",
+    "Octaver": "октавер октава octave",
+    "Bitcrusher": "биткрашер lofi",
+    "Volume": "громкость volume"
+  },
+  "formats": [
+    {
+      "format": "Встроенные педали",
+      "status": "работает",
+      "note": "DSP на Rust (crates/gc-dsp), аудиоустройства через cpal"
+    },
+    {
+      "format": "GuitarCraft DSP-блоки (.gcpedal.json)",
+      "status": "работает",
+      "note": "Педали из конструктора, обрабатываются Rust-ядром. Лежат в Документы/GuitarCraft/Pedals"
+    },
+    {
+      "format": "Расширения GuitarCraft (.gcext.js)",
+      "status": "только поиск",
+      "note": "JS-модули работали в Web Audio. В Rust-ядре не исполняются; используйте педали из конструктора"
+    },
+    {
+      "format": "Импульсы кабинета (IR) .wav / .flac / .mp3 / .ogg",
+      "status": "работает",
+      "note": "Загружаются в блок кабинета"
+    },
+    {
+      "format": "VST3 / AU / VST2 / CLAP",
+      "status": "только поиск",
+      "note": "Находятся при сканировании и видны в каталоге, но не обрабатывают звук: для этого нужен нативный хост (в планах)"
+    }
+  ]
+}
