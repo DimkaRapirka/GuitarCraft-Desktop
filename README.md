@@ -1,8 +1,10 @@
+<img src="src-tauri/icons/128x128.png" width="76" height="76" alt="GuitarCraft icon">
+
 # GuitarCraft
 
 A desktop guitar amp and pedalboard with a Rust audio engine. Plug in a guitar, build a signal chain, and save the sound as a preset.
 
-[**Download GuitarCraft**](https://github.com/DimkaRapirka/GuitarCraft-Desktop/releases/latest) · [Features](#features) · [Get started](#get-started) · [Build from source](#build-from-source)
+[**Download GuitarCraft**](https://github.com/DimkaRapirka/GuitarCraft-Desktop/releases/latest) · [Features](#features) · [Get started](#get-started) · [Downloads](#downloads) · [Build from source](#build-from-source)
 
 <img src="docs/images/amplifier.jpg" width="100%" alt="GuitarCraft's amplifier studio with its signal chain and Crunch channel">
 
@@ -18,11 +20,16 @@ A desktop guitar amp and pedalboard with a Rust audio engine. Plug in a guitar, 
 
 ## Features
 
-### Build your signal chain
-
-Put a fuzz ahead of the amp or move an echo after the cabinet. Reorder blocks, bypass individual effects, and save the routing with your preset. Fuzz Factory includes Volume, Gate, Comp, Drive, and Stab.
-
-<img src="docs/images/pedalboard-prints.jpg" width="100%" alt="Stompboxes in GuitarCraft with illustrated faces, footswitches, and adjustable knobs">
+<table>
+  <tr>
+    <td width="59%"><img src="docs/images/pedalboard.jpg" alt="Pedalboard with Clari(not) Clean, Fuzz Factory, and Crown Drive"></td>
+    <td width="41%"><h3>Build your signal chain</h3><p>Put a fuzz ahead of the amp or move an echo after the cabinet. Reorder blocks, bypass individual effects, and save the routing with your preset.</p></td>
+  </tr>
+  <tr>
+    <td width="59%"><img src="docs/images/catalog.jpg" alt="Fuzz Factory selected in the searchable pedal catalog, with the audition and add buttons visible"></td>
+    <td width="41%"><h3>Audition a pedal in context</h3><p>Search by name or effect, then hear the pedal in your rig before adding it. Fuzz Factory gives you Volume, Gate, Comp, Drive, and Stab.</p></td>
+  </tr>
+</table>
 
 ### Voice the amp and cabinet
 
@@ -48,9 +55,9 @@ Enable the local MCP server in Settings to let a compatible client find pedals, 
 | --- | --- | --- |
 | macOS · Apple Silicon | DMG | Open the image and drag GuitarCraft to Applications. The bundle uses ad hoc signing. |
 | Windows · x64 | EXE | Run the installer. It uses Microsoft WebView2. |
-| Linux · x86-64 | DEB | Install on Ubuntu 22.04 or on a compatible Debian-based system with WebKitGTK 4.1. |
+| Linux · x86-64 | DEB | On Ubuntu 22.04 or a compatible Debian-based system, run `sudo apt install ./GuitarCraft_0.10.0_amd64.deb`. |
 
-Find installers and SHA-256 checksums in the [latest release](https://github.com/DimkaRapirka/GuitarCraft-Desktop/releases/latest).
+Find the installers and SHA-256 checksums in the [latest release](https://github.com/DimkaRapirka/GuitarCraft-Desktop/releases/latest).
 
 ## Build from source
 
@@ -63,3 +70,7 @@ npm run bundle
 ```
 
 The desktop shell uses Tauri and WebAssembly. The Rust audio engine processes the signal locally through Core Audio, WASAPI, or ALSA. Installers include the GuitarCraft MCP sidecar.
+
+## Interface languages
+
+GuitarCraft opens in English by default. Choose **English** or **Русский** under **Settings → Language**. GuitarCraft applies the selection the next time it starts. Translation catalogs live in [`crates/gc-ui/locales`](crates/gc-ui/locales).
