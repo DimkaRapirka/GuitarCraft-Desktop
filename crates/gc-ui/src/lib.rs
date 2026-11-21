@@ -183,6 +183,7 @@ impl Project {
 }
 
 mod dom;
+mod i18n;
 mod knob;
 
 mod pedal;

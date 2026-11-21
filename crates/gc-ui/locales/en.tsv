@@ -1,0 +1,355 @@
+Язык	Language
+Язык интерфейса	Interface language
+Язык изменится при следующем запуске.	The language will change the next time you open GuitarCraft.
+Аудио	Audio
+Настройки	Settings
+⚙ НАСТРОЙКИ	⚙ SETTINGS
+Тюнер и темп	Tuner & tempo
+Оформление	Appearance
+Плагины и форматы	Plug-ins & formats
+Агенты (MCP)	Agents (MCP)
+О программе	About
+Тюнер	Tuner
+ТЮНЕР 	TUNER
+МЕТРОНОМ	METRONOME
+ГИТАРА	GUITAR
+Эталон A4	A4 reference
+Глушить выход при настройке	Mute output while tuning
+Темп и метроном	Tempo & metronome
+Темп из пресета	Use preset tempo
+Пресет хранит свой BPM для Delay Sync. Выключите, чтобы темп был общим.	Use each preset's BPM for delay sync. Turn this off to use one tempo across presets.
+Темп	Tempo
+BPM, также Tap в нижней панели	BPM. You can also use Tap in the footer.
+Громкость метронома	Metronome level
+Источник	Source
+Источник сигнала	Signal source
+Что подаётся на вход	Signal sent into the rig
+Гитара (аудиоинтерфейс)	Guitar (audio interface)
+DI-записи	DI recordings
+DI-запись	DI recording
+По умолчанию	Default
+Вход	Input
+Выход	Output
+выход	output
+Устройство входа	Input device
+Канал интерфейса	Interface channel
+Список каналов появится после включения живого входа	Select a live input to list its channels.
+Сигнал интерфейса (до INPUT)	Interface signal (before INPUT)
+Если краснеет, уменьшите Gain на самом аудиоинтерфейсе. Ручка INPUT сверху только подаёт уровень в усилитель и не спасает от перегруза входа	If the meter clips, reduce gain on the audio interface. The INPUT knob adjusts the level sent to the amp.
+Уровень DI-записи	DI recording level
+Уровень самой DI-записи. Громкость, с которой она идёт в усилитель, задаёт ручка INPUT сверху	Use the INPUT knob to adjust the level sent to the amp.
+Устройство выхода	Output device
+Каналы выхода	Output channels
+Режим выхода	Output mode
+Стерео	Stereo
+Моно	Mono
+Проверка	Check
+♪ Тестовый сигнал 440 Гц	♪ 440 Hz test tone
+Движок	Engine
+Частота дискретизации	Sample rate
+Частоты, которые поддерживает устройство выхода	Rates supported by the output device
+Размер буфера	Buffer size
+Применяется сразу. Если слышны щелчки, увеличьте буфер.	Applies immediately. Increase the buffer if you hear clicks.
+MIDI-устройства	MIDI devices
+MIDI-контроллеры не найдены. Подключите футконтроллер или клавиатуру по USB: список обновится сам.	Connect a USB MIDI controller or keyboard. The device list updates automatically.
+● подключено	● Connected
+Program Change переключает пресеты	Program Change selects presets
+PC 0 — первый пресет в списке, PC 1 — второй…	PC 0 selects the first preset, PC 1 the second, and so on.
+С какого контроллера принимать	Accept messages from
+любое устройство	Any device
+Program Change → пресет	Program Change → preset
+Закрепите номер PC за пресетом: переключение не зависит от порядка в списке. Если таблица заполнена, незакреплённый PC ничего не переключает и показывает сообщение. Пустая таблица означает, что PC n выбирает n-й пресет.	Bind a Program Change number to a preset to keep the assignment when presets are reordered. An empty table selects presets by list position.
+Чтобы назначить: правый клик по любой ручке или блоку цепочки → «MIDI Learn», затем покрутите регулятор или нажмите педаль контроллера.	Right-click a knob or block and choose MIDI Learn, then move a control on your device.
+Какие форматы работают	Supported formats
+работает	Supported
+Папка расширений	Extensions folder
+Папка моих педалей	My pedals folder
+Перезагрузить расширения	Reload extensions
+Конструктор педалей…	Pedal builder…
+Агенты через MCP	Agents over MCP
+GuitarCraft может принимать команды от AI-агента (Claude Code, Codex и других MCP-клиентов). Агент ищет педали в том же каталоге, меняет цепочку и параметры, слушает звук, сохраняет пресеты. Любой его шаг отменяется ⌘Z.	Connect a local MCP client to find pedals, edit the chain, analyze sound, and save presets. You can undo its changes from the app.
+Разрешить агентам управлять GuitarCraft	Allow agents to control GuitarCraft
+Только локально, с этого компьютера	Local access on this computer
+Показывать панель действий агента	Show agent activity
+Подключение	Connection
+Добавьте сервер в конфигурацию MCP-клиента (например, .mcp.json проекта или настройки Claude Code):	Add the server to your MCP client's configuration.
+Скопировать конфигурацию	Copy configuration
+Агент ещё не подключался в этой сессии.	No agent has connected in this session.
+Фоны рабочей области	Workspace backgrounds
+Выберите фон для каждой сцены. Поддерживаются PNG, JPEG и WebP.	Choose a PNG, JPEG, or WebP background for each scene.
+Стандартный фон	Default background
+Импорт…	Import…
+Изображение для фона	Background image
+Усилитель и кабинет	Amp & cabinet
+Педалборд	Pedalboard
+Рэки	Rack effects
+Аудиоинтерфейс	Audio interface
+аудиоинтерфейс	audio interface
+Вход: настройки аудио	Input settings
+Пик. Клик: сбросить индикатор перегрузки	Peak meter. Click to clear the clipping indicator.
+Порог гейта	Gate threshold
+Release гейта	Gate release
+Транспонирование	Transpose
+Оценка задержки вывода (буфер + устройство). Открыть настройки аудио	Estimated output latency (buffer and device). Open audio settings.
+Пробел	Space
+Свой файл…	Open audio file…
+Риффы — палм-мьют	Riffs — palm mute
+Аккорды — открытые	Open chords
+Лид — фраза	Lead phrase
+Открытые струны	Open strings
+Усилитель	Amp
+Кабинет	Cabinet
+Эквалайзер	EQ
+Эхо	Delay
+Пространство	Reverb
+прослушивание	audition
+выкл (A/B)	off (A/B)
+Добавить педаль сюда	Add a pedal here
+Перетащите блок или нажмите Alt + ← / →	Drag the block or press Alt + ← / →
+Выключить (bypass)	Bypass
+Включить	Enable
+Сдвинуть влево	Move left
+Сдвинуть вправо	Move right
+Заменить…	Replace…
+Заменить	Replace
+Добавить	Add
+Удалить	Remove
+Убрать	Remove
+выключена	bypassed
+включена	enabled
+Блоки цепочки между педалями	Signal blocks between pedals
+Выберите педаль на педалборде.	Select a pedal on the board.
+Нажмите «+», чтобы добавить педаль.	Press + to add a pedal.
+Меню педали	Pedal menu
+Вкл / выкл	On / off
+＋ Собрать свою педаль…	＋ Build a pedal…
+Название, тип или характер звука: «тёплый овердрайв», «эхо», «фузз»…	Search by name, effect, or sound…
+Добавить педаль	Add a pedal
+★ Избранное	★ Favorites
+★ Избранные	★ Favorites
+Избранное	Favorites
+🕘 Недавние	🕘 Recent
+Все источники	All sources
+Встроенные	Built-in
+Мои педали	My pedals
+Расширения	Extensions
+Найденные VST3/AU (не обрабатывают звук)	Detected VST3/AU files
+В избранном пока пусто. Нажмите ★ у педали.	Star a pedal to add it to Favorites.
+Вы ещё ничего не добавляли.	Recently added pedals appear here.
+Ничего не найдено. Попробуйте «драйв», «эхо», «тёплый»…	No pedals found. Try drive, echo, or warm.
+встроенная	Built-in
+моя	User
+расширение	Extension
+без педали	without pedal
+■ Стоп	■ Stop
+■ Остановить	■ Stop
+▶ Послушать в цепочке	▶ Audition in chain
+Добавить в цепочку	Add to chain
+Двойной клик или Enter: добавить. Пробел: послушать.	Double-click or press Enter to add. Press Space to audition.
+Новая педаль встанет на то же место в цепочке	The replacement uses the same slot in the chain.
+Для обработки звука доступны встроенные педали, педали из конструктора и IR-файлы кабинетов.	Audio processing supports built-in and custom pedals, plus cabinet impulse responses.
+Драйв	Drive
+Динамика	Dynamics
+Фильтры и EQ	Filters & EQ
+Модуляция	Modulation
+Задержка и реверб	Delay & reverb
+Высота	Pitch
+Утилиты	Utility
+Позиция микрофона	Mic position
+Дистанция микрофона	Mic distance
+Уровень кабинета	Cabinet level
+Тяните микрофон: центр ↔ край диффузора. Колесо: дистанция	Drag the mic from center to edge. Scroll to change its distance.
+◱ Весь кабинет	◱ Full cabinet
+◎ Динамик крупно	◎ Speaker close-up
+Вкл/выкл (bypass)	Enable / bypass
+Микрофон	Microphone
+Микрофон 2	Mic 2
+Выкл.	Off
+Второй микрофон	Second microphone
+Доля второго	Mic 2 mix
+Позиция	Position
+Дистанция	Distance
+Инвертировать полярность второго микрофона	Invert the polarity of the second mic
+Ø вкл.	Ø on
+Ø выкл.	Ø off
+Полярность второго микрофона	Mic 2 polarity
+Свой импульс (IR)	Custom impulse response
+Загрузить IR…	Load IR…
+Загрузить IR	Load IR
+Вернуть модель	Restore cabinet model
+Модель кабинета	Cabinet model
+Питание (bypass)	Power / bypass
+АНАЛИЗАТОР	ANALYZER
+Свободное время в мс	Delay time in ms
+Четверть	Quarter note
+Пунктирная четверть	Dotted quarter
+Восьмая	Eighth note
+Пунктирная восьмая	Dotted eighth
+Триоль восьмых	Eighth-note triplet
+Шестнадцатая	Sixteenth note
+дБ	dB
+Гц	Hz
+мс	ms
+с	s
+Сыграйте открытую струну	Play an open string
+ЗВУК	SOUND
+Закрыть	Close
+Новый пресет	New preset
+Сохранить их перед переключением пресета?	Save changes before switching presets?
+Отмена	Cancel
+Не сохранять	Discard
+Сохранить	Save
+Заводские	Factory
+Мои	User
+Название пресета	Preset name
+Убрать из избранных	Remove from favorites
+В избранные	Add to favorites
+Поиск пресета…	Search presets…
++ Новый пресет	+ New preset
+Сохранить как…	Save as…
+Показать файл	Show file
+Удалить пресет	Delete preset
+Предыдущий пресет	Previous preset
+Следующий пресет	Next preset
+Заводской пресет сохранится как новый	Save a copy of this factory preset
+Сравнить с сохранённой версией	Compare with the saved preset
+A: сохранённая версия пресета	A: Saved preset
+B: ваша правка	B: Your changes
+Ещё	More
+Отменить (⌘Z)	Undo
+Вернуть (⇧⌘Z)	Redo
+Слушаете сохранённую версию (A). Ручки показывают её и не редактируются. Нажмите B, чтобы вернуться к правке.	Listening to the saved preset (A). Press B to resume editing.
+MCP-агент	MCP agent
+Срез верха (LPF)	Low-pass filter (LPF)
+Срез низа (HPF)	High-pass filter (HPF)
+Полоса (вау)	Band-pass (wah)
+Колокол	Bell
+Полка низа	Low shelf
+Полка верха	High shelf
+Вырез	Notch
+Мягкий	Soft
+Асимметричный, ламповый	Asymmetric tube
+Ламповый	Tube
+Диодный	Diode
+Жёсткий, кремний	Hard silicon
+Фузз	Fuzz
+Блоки	Blocks
+Ручки педали	Pedal knobs
+Название ручки	Knob name
++ ручка	+ Knob
+число	Number
+от	from
+до	to
+ВХОД ↓	INPUT ↓
+ВЫХОД	OUTPUT
+Выше	Move up
+Ниже	Move down
+Педаль	Pedal
+Название	Name
+Тип	Type
+Категория	Category
+Характер звука (через запятую)	Sound tags (comma-separated)
+Сохранить в каталог	Save to catalog
+Конструктор педалей	Pedal builder
+Соберите педаль из DSP-блоков, привяжите значения к ручкам, послушайте в цепочке и сохраните в каталог	Combine DSP blocks, assign knobs, audition the sound, and save your pedal.
+Файл .gcpedal.json появится в Документы/GuitarCraft/Pedals. Этот же формат принимает MCP-инструмент pedal_create.	Custom pedals are stored as .gcpedal.json files. The MCP pedal_create tool also accepts this format.
+Готово	Done
+Сбросить	Reset
+Название оформления	Skin name
+Скопировать промпт	Copy prompt
+Импорт PNG…	Import PNG…
+PNG с фасадом комбика	Amp front image
+← Назад	← Back
+Оформление комбика	Combo skins
+＋ Создать своё оформление…	＋ Create a skin…
+Разметка: перетащите ручки на панель	Drag the knobs into place
+Ошибка импорта PNG	Could not import the PNG
+Расширения перезагружены	Extensions reloaded
+Конфигурация MCP скопирована	MCP configuration copied
+MIDI-назначение убрано	MIDI mapping removed
+Номер Program Change должен быть от 0 до 127	Enter a Program Change number from 0 to 127.
+Педаль удалена	Pedal removed
+Блок перемещён	Block moved
+Включено	Enabled
+Выключено	Disabled
+Фон отсутствует в библиотеке	Background not found in the library
+Неизвестная сцена	Unknown scene
+Зелёный овердрайв с горбом на середине. Подтягивает низ и делает хай-гейн плотнее.	Mid-forward overdrive that tightens the low end before a high-gain amp.
+Прозрачный овердрайв: сохраняет низ и характер гитары, добавляет мягкий клиппинг.	Transparent overdrive with soft clipping that preserves the guitar’s low end.
+Чистый буст с регулируемым диапазоном: от плоского до классического treble-booster.	Clean boost with adjustable range, from flat response to classic treble boost.
+Жёсткий клиппинг на кремнии: агрессивная середина и много сустейна.	Hard silicon clipping with aggressive mids and long sustain.
+Вязкий асимметричный фузз с огромным низом и рваным распадом.	Thick asymmetric fuzz with a big low end and a ragged decay.
+Модель по мотивам ZVEX Fuzz Factory. Gate укорачивает хвост ноты, Comp меняет атаку и характер перегруза. При низком Stab фузз может свистеть даже в паузах.	Inspired by the ZVEX Fuzz Factory. Gate shortens note tails, Comp shapes the attack, and low Stab can produce feedback between notes.
+Британский «усилитель в коробке»: открытый кранч с хрустящей верхней серединой.	British amp-in-a-box crunch with crisp upper mids.
+Студийный компрессор: выравнивает атаку и добавляет сустейн.	Studio compressor that evens out attack and adds sustain.
+Второй гейт для любого места цепочки, например после фузза.	A second gate you can place anywhere in the chain, including after a fuzz.
+Конвертный фильтр: чем сильнее атака, тем выше открывается вау.	Envelope filter that opens the wah further as you pick harder.
+Вау в фиксированном положении: гнусавый, режущий тон для соло.	Fixed-position wah with a nasal lead tone.
+6-полосный графический эквалайзер. Удобно ставить перед усилителем, чтобы подрезать низ.	Six-band graphic EQ. Place it before the amp to tame the low end.
+Модель GuitarCraft по мотивам чистой Clari(not). Высота повтора реагирует на силу щипка. Blend смешивает его с прямым сигналом, Tracking задаёт чувствительность к атаке.	Inspired by the clean Clari(not). Pick attack bends the echo pitch. Blend sets the mix and Tracking sets sensitivity.
+Аналоговый хорус в духе 80-х: глубокая и мягкая модуляция.	Deep, soft modulation inspired by 1980s analog chorus.
+Флэнжер со звуком взлетающего самолёта: резонанс и глубокая свипа.	Resonant jet flanger with a wide sweep.
+4-ступенчатый фэйзер в духе 70-х: тёплое вращение звука.	Warm, four-stage phaser with a 1970s swirl.
+Оптическое тремоло старых комбиков: пульсация громкости.	Optical tremolo with the volume pulse of a vintage combo.
+Ленточное эхо: тёмные повторы, которые слегка плывут.	Tape echo with dark, gently drifting repeats.
+Цифровой дилей с чистыми, точными повторами.	Digital delay with clear, precise repeats.
+Пружинный ревербератор: капающий, «серфовый» хвост.	Spring reverb with the drip of a surf amp.
+Огромный холл для эмбиента и шугейза.	Large hall reverb for ambient sounds and shoegaze.
+Октава вниз: добавляет «басовую» подложку под одиночные ноты.	Adds a bass-like octave below single notes.
+Понижает разрядность и частоту дискретизации: 8-битная грязь и радиотон.	Reduced bit depth and sample rate for gritty eight-bit tones.
+Кольцевая модуляция: металлические колокольные обертоны.	Ring modulation with metallic, bell-like overtones.
+Педаль громкости.	Volume pedal.
+Delay и Reverb	Delay & reverb
+Питч	Pitch
+Громкость	Volume
+Уровень, дБ	Level, dB
+Фильтр	Filter
+Частота, Гц	Frequency, Hz
+Усиление, дБ	Gain, dB
+Перегруз	Drive
+Кривая	Curve
+Драйв ×	Drive ×
+Задержка	Delay
+Время, мс	Time, ms
+Повторы	Repeats
+Микс	Mix
+Тремоло	Tremolo
+Скорость, Гц	Rate, Hz
+Глубина	Depth
+Ринг-модулятор	Ring modulator
+Открытый 1×12, воздушный, лёгкий низ	Airy open 1×12 with a light low end
+Звонкий 2×12, яркая верхняя середина	Chiming 2×12 with bright upper mids
+Закрытый 4×12, плотный низ, агрессивная середина	Closed 4×12 with tight lows and aggressive mids
+Тёплый британский 4×12, мягкий верх	Warm British 4×12 with a soft top end
+Маленький твид-комбик, гнусавый и винтажный	Small tweed combo with a vintage midrange
+Классический динамический, плотная середина	Classic dynamic mic with focused mids
+Ленточный, тёмный и гладкий	Dark and smooth ribbon mic
+Конденсаторный, открытый верх	Condenser mic with an open top end
+Динамический, плотный низ и чёткая атака	Dynamic mic with tight lows and clear attack
+Чистый, упругий, с запасом по громкости	Responsive clean channel with plenty of headroom
+Британский кранч, отзывчив к атаке	British crunch with pick-sensitive gain
+Плотный хай-гейн для риффов, собранный низ	High gain with tight lows for rhythm playing
+Певучий лид, жирная середина, длинный сустейн	Singing lead with full mids and long sustain
+Свой IR · {}	Custom IR · {}
+Добавлено: {}	Added {}
+Заменить «{}»	Replace “{}”
+Место в цепочке: между «{}» и «{}»	Insert between “{}” and “{}”
+Включить или выключить {}	Toggle {}
+Гитара · {} · вход {}	Guitar · {} · input {}
+{} кГц · ≈{} мс	{} kHz · ≈{} ms
+Вход {}	Input {}
+По умолчанию ({})	Default ({})
+Устройство отдаёт каналов: {}	Available input channels: {}
+{} кГц	{} kHz
+Назначения ({})	Mappings ({})
+только {}	Only {}
+Найдено при сканировании: {}	Found by scan: {}
+Кабинет {}	Cabinet {}
+Микрофон {}	Microphone {}
+Канал {}	Channel {}
+Удалить пресет «{}»?	Delete preset “{}”?
+Пресет «{}» сохранён	Preset “{}” saved
+Изменения в «{}» не сохранены	Unsaved changes in “{}”
+Неверный формат педали	Invalid pedal format
+Ошибка настроек	Settings error
+Педаль нельзя прослушать	This pedal cannot be auditioned

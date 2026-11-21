@@ -1,7 +1,7 @@
 // Exercise the installed WebView through the desktop control port, using a fresh data directory.
 import assert from 'node:assert/strict';
-import { spawn } from 'node:child_process';
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { execFileSync, spawn } from 'node:child_process';
+import { mkdir, mkdtemp, readFile, rm } from 'node:fs/promises';
 import net from 'node:net';
 import os from 'node:os';
 import path from 'node:path';
@@ -25,6 +25,15 @@ const child = spawn(path.resolve(exe), [], {
 const exit = once(child, 'exit');
 const dom = selector => call('eval.dom', { selector });
 const demo = (...steps) => call('demo.run', { steps });
+const screenshotDir = process.env.GC_SCREENSHOT_DIR;
+async function screenshot(name) {
+  if (!screenshotDir) return;
+  await mkdir(screenshotDir, { recursive: true });
+  await delay(300);
+  const ids = execFileSync('xdotool', ['search', '--onlyvisible', '--name', '^GuitarCraft$'], {encoding:'utf8'});
+  const window = ids.trim().split(/\s+/).at(-1);
+  execFileSync('import', ['-window', window, '-resize', '1440x', '-quality', '89', path.join(screenshotDir, name+'.jpg')]);
+}
 async function until(test, ms = 10000) {
   const deadline = Date.now() + ms;
   let last;
@@ -41,6 +50,12 @@ async function until(test, ms = 10000) {
 try {
   await until(() => call('state.get', {timeoutMs: 1000}), 90000);
   await until(() => dom('[data-ctl="channel"]'));
+  assert(await dom('html[lang="en"]'));
+  assert((await dom('#btn-settings')).text.includes('SETTINGS'));
+  await call('ui.openSettings',{tab:'language'});
+  await until(() => dom('#set-language option[value="en"]'));
+  assert.equal((await dom('#set-language option[value="ru"]')).text, 'Русский');
+  await call('ui.closeModals');
   assert.equal((await call('engine.status')).diPlaying, false);
   assert.equal((await dom('#btn-play')).text, '▶');
   await demo({click:'#btn-play'});
@@ -48,6 +63,7 @@ try {
   await demo({click:'#btn-play'});
   await until(async () => !(await call('engine.status')).diPlaying);
   assert(await dom('.brand img.logo[src="wasm/app-icon.png"]'));
+  await screenshot('amplifier');
   assert.equal((await call('catalog.search', {query:'clarinot'}))[0].id, 'gc.clarinot-clean');
   const { added: uid } = await call('chain.add', {pedal:'gc.clarinot-clean',index:0});
   const artPedal = (await call('chain.add', {pedal:'gc.pulse',index:1})).added;
@@ -99,6 +115,7 @@ try {
   await demo({click:'[data-sync="1/8."]'});
   assert((await dom('[data-rack=delay] .lcd-text b')).text.includes('450 ms'));
   await call('ui.select',{target:'cab'});
+  await screenshot('cabinet');
   await demo({click:'[data-cab="1x10-tiny"]'},{click:'#btn-closeup'});
   assert(await dom('.cab-pic.close'));
   assert(!(await call('skin.list')).some(skin => ['tokyo-ghoul', 'tokyo-ghoul-white'].includes(skin.id)));
@@ -139,6 +156,16 @@ try {
     assert(await dom('[data-knob="'+fuzz+'.'+knob+'"]'));
   }
   assert(await dom('[data-board-pedal="'+fuzz+'"] img[src$="factory-storm.png"]'));
+  if (screenshotDir) {
+    await call('chain.add',{pedal:'gc.crown',before:'amp'});
+    await call('chain.add',{pedal:'gc.spring',after:'cab'});
+    await call('ui.select',{target:fuzz});
+    await screenshot('pedalboard');
+    await demo({click:'[data-plus="0"]'},{type:'#cat-search',text:'Fuzz Factory',cps:80},{hideCursor:true});
+    await until(() => dom('.cat-detail [data-model="gc.fuzz-factory"]'));
+    await screenshot('catalog');
+    await call('ui.closeModals');
+  }
   await call('param.set',{target:fuzz,param:'stab',value:0.42},'mcp');
   await call('preset.save',{name:'Fuzz Factory QA',bank:'QA'});
   await call('preset.load',{name:'Fuzz Factory QA'});

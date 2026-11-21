@@ -280,14 +280,15 @@ pub fn render_footer() -> Result<(), JsValue> {
         child(&b, "i", "live-dot", "");
         let info = get(&engine, "liveInfo");
         let label = string(&info, "label");
-        b.append_child(&doc().create_text_node(&format!(
+        let label = if label.is_empty() {
+            crate::i18n::text("аудиоинтерфейс").to_owned()
+        } else {
+            label.chars().take(28).collect()
+        };
+        let channel = (num(&info, "channel", 0.) + 1.).to_string();
+        b.append_child(&doc().create_text_node(&crate::i18n::message(
             "Гитара · {} · вход {}",
-            if label.is_empty() {
-                "аудиоинтерфейс".into()
-            } else {
-                label.chars().take(28).collect::<String>()
-            },
-            num(&info, "channel", 0.) + 1.
+            &[&label, &channel],
         )))?;
         on(&b, "click", &a, |a, _| {
             crate::settings::open_settings(a.clone(), Some("audio".into()))

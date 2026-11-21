@@ -109,12 +109,15 @@ pub fn pedal_visual(_app: &JsValue, def: &JsValue, params: &JsValue, opts: &JsVa
         child(&face, "div", "pr-type", &string(def, "type"));
         let switch = child(&face, "button", "pr-switch", "");
         switch
-            .set_attribute("aria-label", &format!("Включить или выключить {name}"))
+            .set_attribute(
+                "aria-label",
+                &crate::i18n::message("Включить или выключить {}", &[&name]),
+            )
             .unwrap();
         switch
             .set_attribute("aria-pressed", if on { "true" } else { "false" })
             .unwrap();
-        switch.set_attribute("title", "Вкл / выкл").unwrap();
+        crate::editor::attr(&switch, "title", "Вкл / выкл");
         let toggle = get(opts, "onToggle").dyn_into::<Function>().ok();
         listen(&switch, "click", move |ev| {
             ev.stop_propagation();

@@ -596,21 +596,23 @@ pub fn open_catalog(app: JsValue, opts: JsValue) -> Result<(), JsValue> {
                 .map(|d| string(&d, "name"))
                 .unwrap_or_else(|| fallback.into())
         };
-        format!(
+        crate::i18n::message(
             "Место в цепочке: между «{}» и «{}»",
-            name(index.checked_sub(1), "Gate"),
-            name(Some(index), "выход")
+            &[
+                crate::i18n::text(&name(index.checked_sub(1), "Gate")),
+                crate::i18n::text(&name(Some(index), "выход")),
+            ],
         )
     };
     let modal = make("div", "modal-bg catalog-bg");
-    modal.set_inner_html(include_str!("catalog.html"));
+    modal.set_inner_html(&crate::i18n::template(include_str!("catalog.html")));
     let find = |s: &str| modal.query_selector(s).unwrap().unwrap();
     find(".cat-head h2").set_text_content(Some(&if replacing.is_empty() {
-        "Добавить педаль".into()
+        crate::i18n::text("Добавить педаль").into()
     } else {
-        format!("Заменить «{replacing}»")
+        crate::i18n::message("Заменить «{}»", &[&replacing])
     }));
-    find(".cat-head .muted").set_text_content(Some(&where_text));
+    find(".cat-head .muted").set_text_content(Some(crate::i18n::text(&where_text)));
     let input: HtmlInputElement = find("#cat-search").unchecked_into();
     input.set_value(&string(&opts, "query"));
     let panel = Rc::new(Panel {

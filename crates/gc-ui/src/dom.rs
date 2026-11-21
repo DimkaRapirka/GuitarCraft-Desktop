@@ -15,7 +15,7 @@ pub fn make(tag: &str, class: &str) -> Element {
 pub fn child(root: &Element, tag: &str, class: &str, txt: &str) -> Element {
     let e = make(tag, class);
     if !txt.is_empty() {
-        e.set_text_content(Some(txt));
+        e.set_text_content(Some(crate::i18n::text(txt)));
     }
     root.append_child(&e).unwrap();
     e

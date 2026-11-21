@@ -18,7 +18,7 @@ jobs:
       - name: Install Linux dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev libxdo-dev libasound2-dev xvfb pulseaudio
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev libxdo-dev libasound2-dev xvfb pulseaudio xdotool imagemagick
       - run: rustup target add wasm32-unknown-unknown
       - run: npm ci
       - run: npm run bundle
@@ -33,9 +33,14 @@ jobs:
           pulseaudio --start --exit-idle-time=-1
           pactl load-module module-null-sink sink_name=guitarcraft_qa
           pactl set-default-sink guitarcraft_qa
-          dbus-run-session -- xvfb-run -a node tools/check-desktop.mjs "$(command -v guitarcraft)"
+          GC_SCREENSHOT_DIR="$RUNNER_TEMP/guitarcraft-screenshots" dbus-run-session -- xvfb-run -a -s "-screen 0 1600x1050x24" node tools/check-desktop.mjs "$(command -v guitarcraft)"
       - uses: actions/upload-artifact@v4
         with:
           name: GuitarCraft-Linux-x64
           path: target/release/bundle/deb/*.deb
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GuitarCraft-Screenshots
+          path: ${{ runner.temp }}/guitarcraft-screenshots/*.jpg
           if-no-files-found: error

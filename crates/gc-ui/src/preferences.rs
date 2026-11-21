@@ -21,7 +21,7 @@ fn copy_fields(to: &JsValue, from: &JsValue) {
 #[wasm_bindgen(js_name=loadSettings)]
 pub async fn load_settings(app: JsValue) -> Result<JsValue, JsValue> {
     let s = js(
-        &json!({"inputMode":"di","inputDevice":"default","inputChannel":0,"outputDevice":"default","bufferSize":128,
+        &json!({"language":"en","inputMode":"di","inputDevice":"default","inputChannel":0,"outputDevice":"default","bufferSize":128,
         "tunerRef":440,"tunerMute":true,"bpm":120,"metronomeLevel":0.5,"mcpEnabled":false,"showAgentPanel":true}),
     )?;
     let saved = host::command("settings_load", &JsValue::UNDEFINED).await?;

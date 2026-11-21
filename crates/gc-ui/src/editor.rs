@@ -8,7 +8,11 @@ use web_sys::{Element, Event};
 pub(crate) const PEDALBOARD: &str = "pedalboard";
 
 pub(crate) fn attr(el: &Element, k: &str, v: &str) {
-    el.set_attribute(k, v).unwrap();
+    let value = match k {
+        "title" | "placeholder" | "aria-label" => crate::i18n::text(v),
+        _ => v,
+    };
+    el.set_attribute(k, value).unwrap();
 }
 pub(crate) fn report(r: Result<(), JsValue>) {
     if let Err(e) = r {

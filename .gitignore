@@ -9,3 +9,4 @@ src-tauri/binaries/
 app/wasm/
 
 /local-skins/
+node_modules

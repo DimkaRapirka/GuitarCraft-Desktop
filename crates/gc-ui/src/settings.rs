@@ -17,13 +17,14 @@ use wasm_bindgen::{prelude::*, JsCast};
 use wasm_bindgen_futures::spawn_local;
 use web_sys::Element;
 thread_local! { static OPEN:RefCell<Option<Rc<Panel>>>=const{RefCell::new(None)}; }
-const TABS: [(&str, &str); 7] = [
+const TABS: [(&str, &str); 8] = [
     ("audio", "Аудио"),
     ("midi", "MIDI"),
     ("tuner", "Тюнер и темп"),
     ("appearance", "Оформление"),
     ("plugins", "Плагины и форматы"),
     ("agents", "Агенты (MCP)"),
+    ("language", "Язык"),
     ("about", "О программе"),
 ];
 struct Panel {
@@ -35,6 +36,10 @@ struct Panel {
     version: Cell<u64>,
 }
 fn attr(el: &Element, key: &str, value: &str) {
+    let value = match key {
+        "title" | "placeholder" | "aria-label" => crate::i18n::text(value),
+        _ => value,
+    };
     el.set_attribute(key, value).unwrap();
 }
 fn row(parent: &Element, label: &str, hint: &str) -> Element {
@@ -205,6 +210,22 @@ impl Panel {
             "plugins" => self.plugins(p).await?,
             "appearance" => self.appearance(p, &s).await?,
             "agents" => self.agents(p, &s).await?,
+            "language" => {
+                select(
+                    &row(
+                        p,
+                        "Язык интерфейса",
+                        "Язык изменится при следующем запуске.",
+                    ),
+                    "language",
+                    "set-language",
+                    crate::i18n::LANGUAGES
+                        .iter()
+                        .map(|(id, name)| (id.to_string(), name.to_string()))
+                        .collect(),
+                    crate::i18n::language(text(&s, "language")),
+                );
+            }
             "tuner" => {
                 child(p, "h3", "", "Тюнер");
                 number(
@@ -296,7 +317,7 @@ impl Panel {
                 if name.is_empty() {
                     "По умолчанию".into()
                 } else {
-                    format!("По умолчанию ({name})")
+                    crate::i18n::message("По умолчанию ({})", &[&name])
                 },
             )];
             v.extend(
@@ -317,7 +338,7 @@ impl Panel {
         let live_info = get(&engine, "liveInfo");
         let count = num(&live_info, "channels", 1.) as i64;
         let hint = if live_info.is_object() {
-            format!("Устройство отдаёт каналов: {count}")
+            crate::i18n::message("Устройство отдаёт каналов: {}", &[&count.to_string()])
         } else {
             "Список каналов появится после включения живого входа".into()
         };
@@ -326,7 +347,12 @@ impl Panel {
             "inputChannel",
             "set-input-channel",
             (0..count)
-                .map(|n| (n.to_string(), format!("Вход {}", n + 1)))
+                .map(|n| {
+                    (
+                        n.to_string(),
+                        crate::i18n::message("Вход {}", &[&(n + 1).to_string()]),
+                    )
+                })
                 .collect(),
             &i(s, "inputChannel", 0).to_string(),
         );
@@ -401,7 +427,12 @@ impl Panel {
             "set-sr",
             rates
                 .iter()
-                .map(|r| (r.to_string(), format!("{} кГц", r / 1000.)))
+                .map(|r| {
+                    (
+                        r.to_string(),
+                        crate::i18n::message("{} кГц", &[&(r / 1000.).to_string()]),
+                    )
+                })
                 .collect(),
             &sr.to_string(),
         );
@@ -462,7 +493,12 @@ impl Panel {
             true,
         );
         let maps = list(&s["midiMappings"]);
-        child(p, "h3", "", &format!("Назначения ({})", maps.len()));
+        child(
+            p,
+            "h3",
+            "",
+            &crate::i18n::message("Назначения ({})", &[&maps.len().to_string()]),
+        );
         child(p,"p","muted small","Чтобы назначить: правый клик по любой ручке или блоку цепочки → «MIDI Learn», затем покрутите регулятор или нажмите педаль контроллера.");
         for m in maps {
             let r = child(&row(p, text(m, "name"), ""), "div", "row", "");
@@ -476,7 +512,10 @@ impl Panel {
             let dev = text(m, "device");
             let mut opts = vec![("*".into(), "любое устройство".into())];
             if !dev.is_empty() && dev != "*" {
-                opts.insert(0, (dev.to_owned(), format!("только {dev}")));
+                opts.insert(
+                    0,
+                    (dev.to_owned(), crate::i18n::message("только {}", &[dev])),
+                );
             }
             attr(
                 &select(
@@ -560,7 +599,7 @@ impl Panel {
             p,
             "h3",
             "",
-            &format!("Найдено при сканировании: {}", found.len()),
+            &crate::i18n::message("Найдено при сканировании: {}", &[&found.len().to_string()]),
         );
         let list = child(p, "div", "muted small", "");
         for d in found {
@@ -806,6 +845,7 @@ impl Panel {
                 }
                 patch["midiMappings"] = json!(maps);
             }
+            "language" => patch[&key] = json!(crate::i18n::language(&value)),
             "mono" => patch["mono"] = json!(value == "mono"),
             "mcpEnabled" | "showAgentPanel" | "presetTempo" | "midiPC" | "tunerMute" => {
                 patch[&key] = json!(get(&el, "checked").is_truthy())

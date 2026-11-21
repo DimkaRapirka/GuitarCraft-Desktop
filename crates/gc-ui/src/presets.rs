@@ -136,7 +136,7 @@ async fn discard() -> Result<bool, JsValue> {
     let s = store::state(&app())?;
     let choice = resolved(
         dialog(
-            &format!("Изменения в «{}» не сохранены", text(&s, "name")),
+            &crate::i18n::message("Изменения в «{}» не сохранены", &[text(&s, "name")]),
             None,
         )?
         .into(),
@@ -234,7 +234,10 @@ async fn save(
     call("renderPresetBar", &[])?;
     call(
         "toast",
-        &[format!("Пресет «{name}» сохранён").into(), src.into()],
+        &[
+            crate::i18n::message("Пресет «{}» сохранён", &[&name]).into(),
+            src.into(),
+        ],
     )?;
     js(&json!({"file":dest,"bank":bank,"name":name}))
 }

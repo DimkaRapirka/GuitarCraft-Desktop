@@ -163,6 +163,7 @@ pub async fn start() -> Result<(), JsValue> {
     let st: JsValue = crate::store::Store::new(pr.clone())?.into();
     set(&a, "store", &st);
     let s = preferences::load_settings(a.clone()).await?;
+    crate::i18n::init(&string(&s, "language"));
     let e: JsValue = crate::engine::RustEngine::new(pr.clone())?.into();
     set(&a, "engine", &e);
     let cfg = js_sys::Object::new();
@@ -190,7 +191,7 @@ pub async fn start() -> Result<(), JsValue> {
     let body = doc().body().unwrap();
     body.set_text_content(None);
     let root = child(&body, "div", "app", "");
-    root.set_inner_html(include_str!("shell.html"));
+    root.set_inner_html(&crate::i18n::template(include_str!("shell.html")));
     set(&a, "root", &root);
     crate::backgrounds::apply(&a).await?;
     let cb = Closure::<dyn Fn(String, JsValue)>::new(|kind, meta| {
