@@ -541,3 +541,8 @@ JS-модули работали в Web Audio. В Rust-ядре не испол�
 Отменено: {}	Undid {}
 Пресет «{}»	Preset “{}”
 MIDI Learn: «{}». Подвигайте регулятор на контроллере.	MIDI Learn for “{}”. Move a control on your MIDI device.
+Доступен GuitarCraft {}	GuitarCraft {} is available
+Обновить и перезапустить	Update and restart
+Позже	Later
+Установка обновления…	Installing update…
+Не удалось обновить GuitarCraft. Попробуйте ещё раз.	GuitarCraft could not update. Please try again.

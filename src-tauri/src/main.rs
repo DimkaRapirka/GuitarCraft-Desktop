@@ -7,6 +7,7 @@ mod control;
 mod engine;
 mod files;
 mod midi;
+mod updates;
 
 use engine::{AudioConfig, Engine};
 use files::Dirs;
@@ -147,6 +148,8 @@ fn main() {
     let bridge = control::Bridge::new();
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .manage(updates::PendingUpdate::default())
         .manage(AppState { engine, dirs: Dirs::new(), bridge: bridge.clone() })
         .setup(move |app| {
             control::start(app.handle().clone(), bridge.clone(), &dirs);
@@ -159,6 +162,7 @@ fn main() {
         })
         .on_window_event(|w, ev| { if let tauri::WindowEvent::Destroyed = ev { let st = w.state::<AppState>(); let file = st.dirs.control_file(); if std::fs::read(&file).ok().and_then(|b| serde_json::from_slice::<Value>(&b).ok()).and_then(|v| v["pid"].as_u64()) == Some(std::process::id() as u64) { let _ = std::fs::remove_file(file); } } })
         .invoke_handler(tauri::generate_handler![
+            updates::check_update, updates::install_update,
             fs_dirs, presets_list, presets_save, presets_delete, settings_load, settings_save, read_text, import_to, backgrounds_list, background_import, list_files, write_json, reveal, clipboard_write,
             catalog_discover, plugins_scan, file_open, app_relaunch, app_info, rpc_response,
             engine_configure, engine_devices, engine_set_rig, engine_user_pedals, engine_mute, engine_meters, engine_spectrum, engine_analyze, engine_tuner, engine_status,

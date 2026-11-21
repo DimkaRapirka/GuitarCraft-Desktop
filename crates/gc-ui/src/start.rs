@@ -250,5 +250,11 @@ pub async fn start() -> Result<(), JsValue> {
     listen(&window, "keydown", |e| {
         crate::editor::report(keyboard(e.unchecked_into()))
     });
-    crate::rpc::install(a).await
+    crate::rpc::install(a).await?;
+    wasm_bindgen_futures::spawn_local(async {
+        if let Err(err) = crate::updates::check().await {
+            web_sys::console::debug_1(&err);
+        }
+    });
+    Ok(())
 }

@@ -83,6 +83,12 @@ Enable MCP in **Settings → Agents (MCP)** to search the catalog, change effect
 
 GuitarCraft starts in English. Choose **English** or **Русский** under **Settings → Language**, then reopen the app to apply your selection. The interface uses translation catalogs in [`crates/gc-ui/locales`](crates/gc-ui/locales) for future languages.
 
+## Updates
+
+From version 0.11.0, GuitarCraft checks for a new release when it opens. Choose **Update and restart** to install it, or **Later** to keep playing. Updates are signed and verified before installation. On Linux, your system may ask for an administrator password.
+
+If you use 0.10.1 or earlier, install the latest release once to enable in-app updates.
+
 ## Downloads
 
 | Platform | Package | Installation |
@@ -104,3 +110,7 @@ npm run bundle
 ```
 
 GuitarCraft uses Tauri for its desktop shell and Rust compiled to WebAssembly for its interface. The Rust audio engine processes the signal locally through Core Audio, WASAPI, or ALSA. Each installer includes the GuitarCraft MCP sidecar.
+
+### Prepare an update release
+
+Collect the matching Windows EXE, Linux DEB and macOS DMG in a release directory on the signing Mac. With the matching macOS app built and `TAURI_SIGNING_PRIVATE_KEY_PATH` set to the release key, run `node tools/sign-updates.mjs <release-directory>`. Upload the installers, macOS app archive and generated `latest.json` to the same draft release before publishing it as the latest stable version.

@@ -624,3 +624,5 @@ select { -webkit-appearance: none; appearance: none; padding-right: 26px; backgr
 
 .scene-background-controls { flex-wrap: wrap; }
 .scene-background-controls select { max-width: min(310px, 100%); }
+
+.update-notice { position: fixed; right: 20px; bottom: 64px; z-index: 90; display: flex; align-items: center; gap: 10px; padding: 14px 16px; border: 1px solid var(--line2); border-radius: 10px; background: #211f23; color: #fff; box-shadow: 0 8px 28px #0009; }

@@ -229,6 +229,7 @@ mod presets;
 mod transport;
 
 mod start;
+mod updates;
 
 mod backgrounds;
 

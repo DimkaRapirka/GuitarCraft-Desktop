@@ -1,6 +1,6 @@
 [package]
 name = "gc-dsp"
-version = "0.10.1"
+version = "0.11.0"
 edition = "2021"
 description = "GuitarCraft DSP: amp, cab, pedals, racks"
 

@@ -129,7 +129,7 @@ fn dialog(title: &str, prompt: Option<&str>) -> Result<Promise, JsValue> {
     }
     Ok(p)
 }
-async fn discard() -> Result<bool, JsValue> {
+pub(crate) async fn discard() -> Result<bool, JsValue> {
     if !get(&get(&app(), "store"), "dirty").is_truthy() || get(&app(), "comparing").is_truthy() {
         return Ok(true);
     }
