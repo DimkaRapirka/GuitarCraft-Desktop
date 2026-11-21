@@ -102,7 +102,10 @@ fn catalog_discover(s: S, source: String) -> R<Vec<Value>> {
 #[tauri::command] fn engine_status(s: S) -> Value {
     let e = &s.engine; let i = e.info.lock().clone(); use std::sync::atomic::Ordering::Relaxed;
     let out_ms = e.shared.out_latency_us.load(Relaxed) as f32 / 1000.0;
-    json!({ "engine": "rust", "sr": i.sample_rate, "buffer": i.buffer, "base_ms": i.buffer as f32 / i.sample_rate.max(1) as f32 * 1000.0, "out_ms": out_ms,
+    let capture_ms = e.shared.in_latency_us.load(Relaxed) as f32 / 1000.0;
+    let queue_ms = e.shared.queued_frames.load(Relaxed) as f32 / i.sample_rate.max(1) as f32 * 1000.0;
+    json!({ "engine": "rust", "sr": i.sample_rate, "buffer": i.buffer,
+        "base_ms": capture_ms + queue_ms, "capture_ms": capture_ms, "queue_ms": queue_ms, "out_ms": out_ms,
         "output": i.output, "input": i.input, "outChannels": i.out_channels, "inChannels": i.in_channels, "channel": i.channel, "sampleRates": i.sample_rates,
         "live": e.shared.live.load(Relaxed), "di": *e.di_name.lock(), "diPlaying": e.shared.di_playing.load(Relaxed), "meters": e.meters() })
 }

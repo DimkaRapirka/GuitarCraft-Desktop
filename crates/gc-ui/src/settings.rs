@@ -295,11 +295,22 @@ impl Panel {
             "b",
             "",
             &crate::i18n::message(
-                "Оценка задержки вывода: ≈{} мс",
+                "Оценка задержки: ≈{} мс",
                 &[&format!("{:.0}", num(&engine, "latencyMs", 0.))],
             ),
         );
-        child(&lat,"span","",&crate::i18n::message("буфер {} мс + устройство вывода {} мс. Измерено Rust-ядром через cpal. Задержка входа интерфейса (обычно 1–3 мс) сюда не входит", &[&format!("{:.1}", status["base_ms"].as_f64().unwrap_or(0.)), &format!("{:.1}", status["out_ms"].as_f64().unwrap_or(0.))]));
+        let delay = |key: &str| format!("{:.1}", status[key].as_f64().unwrap_or(0.));
+        child(
+            &lat, "span", "",
+            &if status["live"] == true {
+                crate::i18n::message(
+                    "Вход {} мс + очередь {} мс + выход {} мс",
+                    &[&delay("capture_ms"), &delay("queue_ms"), &delay("out_ms")],
+                )
+            } else {
+                crate::i18n::message("Выход {} мс", &[&delay("out_ms")])
+            },
+        );
         child(p, "h3", "", "Источник");
         let seg = child(&row(p, "Что подаётся на вход", ""), "div", "seg", "");
         button(
@@ -440,7 +451,7 @@ impl Panel {
             &row(
                 p,
                 "Размер буфера",
-                "Применяется сразу. Если слышны щелчки, увеличьте буфер.",
+                "Фактический буфер зависит от драйвера. Если слышны щелчки, увеличьте размер.",
             ),
             "bufferSize",
             "set-buffer",

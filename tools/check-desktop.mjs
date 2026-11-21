@@ -66,8 +66,8 @@ try {
   assert.equal((await dom('#set-language option[value="ru"]')).text, 'Русский');
   await call('ui.closeModals');
   await call('ui.openSettings',{tab:'audio'});
-  await until(async () => (await dom('.lat-box b'))?.text.includes('Estimated output latency'));
-  assert((await dom('.lat-box span')).text.includes('Buffer'));
+  await until(async () => (await dom('.lat-box b'))?.text.includes('Estimated latency'));
+  assert.match((await dom('.lat-box span')).text, /^Output \d+\.\d ms$/);
   await call('ui.closeModals');
   assert((await dom('#btn-latency')).text.includes('kHz'));
   assert.equal((await call('engine.status')).diPlaying, false);
@@ -76,6 +76,16 @@ try {
   await until(async () => (await call('engine.status')).diPlaying);
   await demo({click:'#btn-play'});
   await until(async () => !(await call('engine.status')).diPlaying);
+  await demo({click:'#btn-tuner'});
+  await until(() => dom('#tn-note'));
+  await call('di.play', {index:3});
+  await until(async () => {
+    const reading = await call('tuner.read');
+    return reading?.note === 'E' && reading.octave === 2 && Math.abs(reading.cents) <= 4;
+  }, 5000);
+  await call('di.stop');
+  await until(async () => (await call('tuner.read')) === null, 3000);
+  await demo({click:'#btn-tuner'});
   assert(await dom('.brand img.logo[src="wasm/app-icon.png"]'));
   await screenshot('amplifier');
   assert.equal((await call('catalog.search', {query:'clarinot'}))[0].id, 'gc.clarinot-clean');
@@ -195,8 +205,8 @@ try {
   const ctl = JSON.parse(await readFile(process.env.GC_CONTROL_FILE,'utf8'));
   assert.equal(ctl.pid,child.pid);
   for (const [language, settingsLabel, latencyLabel] of [
-    ['ru', 'НАСТРОЙКИ', 'Оценка задержки вывода'],
-    ['en', 'SETTINGS', 'Estimated output latency'],
+    ['ru', 'НАСТРОЙКИ', 'Оценка задержки'],
+    ['en', 'SETTINGS', 'Estimated latency'],
   ]) {
     await call('settings.set', {language});
     await restart();
@@ -208,7 +218,7 @@ try {
     await until(async () => (await dom('.lat-box b'))?.text.includes(latencyLabel));
     await call('ui.closeModals');
   }
-  console.log('Desktop UI, chain reordering, backgrounds, amp skin, catalog, MIDI, history, presets and MCP passed.');
+  console.log('Desktop UI, chain reordering, backgrounds, amp skin, tuner, catalog, MIDI, history, presets and MCP passed.');
 } finally {
   if (child.exitCode === null && child.signalCode === null) child.kill();
   await exit;

@@ -379,7 +379,7 @@ pub fn render_footer() -> Result<(), JsValue> {
         &f,
         "btn-latency",
         "lat",
-        "Оценка задержки вывода (буфер + устройство). Открыть настройки аудио",
+        "Оценка задержки. Открыть настройки аудио",
         &crate::i18n::message(
             "{} кГц · ≈{} мс",
             &[
@@ -440,10 +440,6 @@ pub fn tick(mut hold: [(f64, f64); 2]) -> Result<(), JsValue> {
         if let Some(el) = doc().query_selector(sel)? {
             el.class_list().toggle_with_force(class, on)?;
         }
-    }
-    let tuner = get(&app(), "tuner");
-    if tuner.is_object() {
-        invoke(&tuner, "tick", &[])?;
     }
     let frame = Closure::once_into_js(move |_: f64| crate::editor::report(tick(hold)));
     web_sys::window()

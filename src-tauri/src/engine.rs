@@ -12,6 +12,8 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, Ordering::Relaxed};
 use std::sync::Arc;
+use std::thread::JoinHandle;
+use std::time::{Duration, Instant};
 
 fn f2u(v: f32) -> u32 { v.to_bits() }
 fn u2f(v: u32) -> f32 { f32::from_bits(v) }
@@ -23,6 +25,7 @@ pub struct Shared {
     pub di_playing: AtomicBool, pub di_restart: AtomicBool, pub live: AtomicBool,
     pub metro_on: AtomicBool, pub bpm: AtomicU32, pub metro_level: AtomicU32, pub test_tone: AtomicU32,
     pub recording: AtomicBool, pub out_latency_us: AtomicU32, pub underruns: AtomicU64,
+    pub in_latency_us: AtomicU32, pub queued_frames: AtomicU32,
 }
 
 /// Messages to the audio callback.
@@ -35,11 +38,28 @@ pub struct StreamInfo { pub sample_rate: u32, pub buffer: u32, pub output: Strin
 
 enum AudioCmd { Configure(AudioConfig, Sender<Result<StreamInfo, String>>) }
 
-pub struct Analysis { pub out: Vec<f32>, pub out_pos: usize, pub inp: Vec<f32>, pub inp_pos: usize, writer: Option<(hound::WavWriter<std::io::BufWriter<std::fs::File>>, PathBuf)> }
+pub struct Analysis {
+    out: Vec<f32>,
+    out_pos: usize,
+    inp: Vec<f32>,
+    inp_pos: usize,
+    inp_count: usize,
+    inp_rate: u32,
+    inp_updated: Option<Instant>,
+    writer: Option<(hound::WavWriter<std::io::BufWriter<std::fs::File>>, PathBuf)>,
+}
 impl Analysis {
     fn last(buf: &[f32], pos: usize, n: usize) -> Vec<f32> { let len = buf.len(); (0..n).map(|i| buf[(pos + len - n + i) % len]).collect() }
     pub fn last_out(&self, n: usize) -> Vec<f32> { Self::last(&self.out, self.out_pos, n) }
-    pub fn last_in(&self, n: usize) -> Vec<f32> { Self::last(&self.inp, self.inp_pos, n) }
+    fn tuner_window(&self) -> Option<(Vec<f32>, f32)> {
+        let n = self.inp_rate as usize * gc_dsp::analysis::TUNER_WINDOW_MS / 1000;
+        if n == 0 || n > self.inp_count
+            || self.inp_updated?.elapsed() > Duration::from_millis(200)
+        {
+            return None;
+        }
+        Some((Self::last(&self.inp, self.inp_pos, n), self.inp_rate as f32))
+    }
 }
 
 struct Control { rig: Value, sig: String, keys: Vec<Option<String>>, user: HashMap<String, Value>, kernels: HashMap<String, Arc<Vec<f32>>>, ir_files: HashMap<String, Vec<f32>>, di_src: Option<(Vec<f32>, u32)> }
@@ -59,7 +79,10 @@ impl Engine {
         let (atx, arx) = bounded::<AudioCmd>(8);
         let shared = Arc::new(Shared::default());
         shared.bpm.store(f2u(120.0), Relaxed); shared.metro_level.store(f2u(0.5), Relaxed);
-        let analysis = Arc::new(Mutex::new(Analysis { out: vec![0.0; 1 << 16], out_pos: 0, inp: vec![0.0; 1 << 14], inp_pos: 0, writer: None }));
+        let analysis = Arc::new(Mutex::new(Analysis {
+            out: vec![0.0; 1 << 16], out_pos: 0, inp: Vec::new(), inp_pos: 0,
+            inp_count: 0, inp_rate: 0, inp_updated: None, writer: None,
+        }));
         let e = Arc::new(Engine { shared, analysis, tx: Mutex::new(None), ctl: Mutex::new(Control { rig: Value::Null, sig: String::new(), keys: vec![], user: HashMap::new(), kernels: HashMap::new(), ir_files: HashMap::new(), di_src: None }),
             audio: atx, info: Mutex::new(StreamInfo::default()), di_name: Mutex::new(String::new()) });
         let e2 = e.clone();
@@ -171,10 +194,12 @@ impl Engine {
         json!({ "bands_dbfs": abs, "bands_relative_db": rel, "reference_relative_db": reference, "deviation_from_reference_db": dev, "assessment": notes.join("; "), "total_dbfs": r1(total), "seconds": seconds, "engine": "rust" })
     }
     pub fn tuner(&self, a4: f32) -> Value {
-        let x = self.analysis.lock().last_in(4096);
-        let f = gc_dsp::analysis::yin(&x, self.sr(), 0.12);
+        let window = self.analysis.lock().tuner_window();
+        let Some((x, rate)) = window else { return Value::Null };
+        let f = gc_dsp::analysis::yin(&x, rate, 0.12);
         if f <= 0.0 { return Value::Null; }
         const NOTES: [&str; 12] = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+        let a4 = if a4.is_finite() && a4 > 0.0 { a4 } else { 440.0 };
         let n = 12.0 * (f / a4).log2() + 69.0; let ni = n.round() as i32;
         json!({ "freq": (f * 10.0).round() / 10.0, "note": NOTES[ni.rem_euclid(12) as usize], "octave": ni.div_euclid(12) - 1, "cents": ((n - ni as f32) * 100.0).round() as i32 })
     }
@@ -244,19 +269,31 @@ pub fn list_devices() -> Value {
 }
 
 // ------------------------------------------------------------------ audio thread
+struct ActiveStreams {
+    streams: Vec<cpal::Stream>,
+    analysis_worker: JoinHandle<()>,
+}
+
 fn audio_thread(e: Arc<Engine>, rx: Receiver<AudioCmd>) {
-    let mut streams: Vec<cpal::Stream> = vec![];
+    let mut active: Option<ActiveStreams> = None;
     // garbage disposal for objects coming back from the callback
     let (gtx, grx) = bounded::<Garbage>(256);
     std::thread::Builder::new().name("gc-garbage".into()).spawn(move || { for g in grx { drop(g); } }).unwrap();
     while let Ok(AudioCmd::Configure(cfg, reply)) = rx.recv() {
-        for s in streams.drain(..) { drop(s); }
+        if let Some(previous) = active.take() {
+            drop(previous.streams);
+            let _ = previous.analysis_worker.join();
+        }
+        e.analysis.lock().inp_updated = None;
         e.shared.live.store(false, Relaxed);
+        e.shared.in_latency_us.store(0, Relaxed);
+        e.shared.out_latency_us.store(0, Relaxed);
+        e.shared.queued_frames.store(0, Relaxed);
         *e.tx.lock() = None;
         let result = open_streams(&e, &cfg, gtx.clone(), None);
         #[cfg(windows)]
         let result = retry_wasapi_format(result, &e, &cfg, &gtx);
-        let r = result.map(|(s, info)| { streams = s; info });
+        let r = result.map(|(streams, info)| { active = Some(streams); info });
         *e.info.lock() = r.as_ref().cloned().unwrap_or_default();
         let _ = reply.send(r);
     }
@@ -270,11 +307,11 @@ fn find_device(host: &cpal::Host, name: Option<&str>, input: bool) -> Option<cpa
 
 #[cfg(windows)]
 fn retry_wasapi_format(
-    mut result: Result<(Vec<cpal::Stream>, StreamInfo), String>,
+    mut result: Result<(ActiveStreams, StreamInfo), String>,
     engine: &Arc<Engine>,
     config: &AudioConfig,
     garbage: &Sender<Garbage>,
-) -> Result<(Vec<cpal::Stream>, StreamInfo), String> {
+) -> Result<(ActiveStreams, StreamInfo), String> {
     let rejected_output = |reason: &String| {
         let reason = reason.to_ascii_lowercase();
         reason.starts_with("выход:") && (reason.contains("0x88890008")
@@ -339,12 +376,35 @@ macro_rules! sample_types {
     }};
 }
 
+/// Keep at most one extra capture callback in reserve for timing differences
+/// between the two devices. After a stall, jump back near the live edge.
+fn trim_live_queue(
+    input: &mut rtrb::Consumer<f32>,
+    output_frames: usize,
+    capture_frames: usize,
+) -> usize {
+    let available = input.slots();
+    let excess = available.saturating_sub(output_frames);
+    let reserve = capture_frames.max(output_frames);
+    if excess <= reserve {
+        return excess;
+    }
+
+    let keep = reserve / 4;
+    if let Ok(chunk) = input.read_chunk(excess - keep) {
+        chunk.commit_all();
+        keep
+    } else {
+        excess
+    }
+}
+
 fn open_streams(
     e: &Arc<Engine>,
     cfg: &AudioConfig,
     gtx: Sender<Garbage>,
     output_format: Option<SampleFormat>,
-) -> Result<(Vec<cpal::Stream>, StreamInfo), String> {
+) -> Result<(ActiveStreams, StreamInfo), String> {
     let host = cpal::default_host();
     let out_dev = find_device(&host, cfg.output.as_deref(), false).ok_or("нет устройства вывода")?;
     let def = out_dev.default_output_config().map_err(|e| e.to_string())?;
@@ -369,35 +429,19 @@ fn open_streams(
     // input (live guitar)
     let live = cfg.mode == "live";
     let (mut prod, mut cons) = rtrb::RingBuffer::<f32>::new((sr as usize).max(4096));
-    let mut streams = vec![]; let mut in_name = None; let mut in_ch = 0u16; let mut channel = cfg.channel;
-    if live {
-        let in_dev = find_device(&host, cfg.input.as_deref(), true).ok_or("нет устройства входа")?;
-        let icfg = in_dev.default_input_config().map_err(|e| e.to_string())?;
-        in_ch = icfg.channels(); channel = channel.min(in_ch.saturating_sub(1));
-        let in_sr = icfg.sample_rate().0;
-        in_name = in_dev.name().ok();
-        let ratio = in_sr as f32 / sr as f32; let mut phase = 0f32; let mut prev = 0f32;
-        let ch = channel as usize; let nch = in_ch as usize;
-        let format = icfg.sample_format();
-        let s = in_dev.build_input_stream_raw(&cpal::StreamConfig { channels: in_ch, sample_rate: cpal::SampleRate(in_sr), buffer_size: cpal::BufferSize::Fixed(buffer) },
-            format, move |data, _| {
-                sample_types!(format, T, if let Some(data) = data.as_slice::<T>() {
-                    capture_samples(data, nch, ch, |x| {
-                        if (ratio - 1.0).abs() < 1e-4 { let _ = prod.push(x); return; }
-                        while phase < 1.0 { let _ = prod.push(prev + (x - prev) * phase); phase += ratio; }
-                        phase -= 1.0; prev = x;
-                    });
-                });
-            }, |err| eprintln!("[gc] input stream error: {err}"), None).map_err(|e| format!("вход: {e}"))?;
-        s.play().map_err(|e| e.to_string())?; streams.push(s);
-    }
+    let (tuner_producer, mut tuner_consumer) = rtrb::RingBuffer::<f32>::new(1 << 16);
+    let (live_tuner, mut di_tuner) = if live {
+        (Some(tuner_producer), None)
+    } else {
+        (None, Some(tuner_producer))
+    };
+    let capture_frames = Arc::new(AtomicU32::new(0));
 
     // output + processing
     let (tx, rx) = bounded::<Cb>(512);
     let mut rack = Rack::new(sr as f32);
     let shared = e.shared.clone();
     let (mut aprod, mut acons) = rtrb::RingBuffer::<f32>::new(1 << 17);
-    let (mut iprod, mut icons) = rtrb::RingBuffer::<f32>::new(1 << 16);
     let (mut rprod, mut rcons) = rtrb::RingBuffer::<f32>::new(1 << 18);
     let mut di: Box<Vec<f32>> = Box::new(vec![]); let mut di_pos = 0usize;
     let (mut inp, mut l, mut r) = (vec![0f32; 4096], vec![0f32; 4096], vec![0f32; 4096]);
@@ -407,20 +451,23 @@ fn open_streams(
     let nch = out_ch as usize;
     let pair_start = (cfg.output_pair as usize * 2).min(nch.saturating_sub(1) / 2 * 2);
     let mono = cfg.mono || pair_start + 1 == nch;
+    let output_capture_frames = capture_frames.clone();
     let out_stream = out_dev.build_output_stream_raw(&out_cfg, format, move |data, info| {
         while let Ok(m) = rx.try_recv() {
             match m { Cb::Rack(m) => rack.handle(m, &mut trash), Cb::Di(d) => { let old = std::mem::replace(&mut di, d); trash(Garbage::Samples(old)); di_pos = 0; } }
         }
-        if let Some(d) = info.timestamp().playback.duration_since(&info.timestamp().callback) { shared.out_latency_us.store(d.as_micros() as u32, Relaxed); }
+        let timestamp = info.timestamp();
+        let latency = timestamp.playback.duration_since(&timestamp.callback);
+        shared.out_latency_us.store(latency.map_or(0, |d| d.as_micros().min(u32::MAX as u128) as u32), Relaxed);
         if shared.di_restart.swap(false, Relaxed) { di_pos = 0; }
         let frames = data.len() / nch;
         let mut done = 0;
         let (mut mr, mut mi, mut mo) = (0f32, 0f32, 0f32);
         let metro = shared.metro_on.load(Relaxed); let bpm = u2f(shared.bpm.load(Relaxed)).max(20.0); let mlev = u2f(shared.metro_level.load(Relaxed));
         let tt = shared.test_tone.load(Relaxed); if tt != tone_seen { tone_seen = tt; tone_left = (srf * 0.7) as usize; }
-        if live { // keep the live input latency bounded
-            let avail = cons.slots(); let keep = frames * 2 + 64;
-            if avail > keep * 2 { for _ in 0..(avail - keep) { let _ = cons.pop(); } }
+        if live {
+            let queued = trim_live_queue(&mut cons, frames, output_capture_frames.load(Relaxed) as usize);
+            shared.queued_frames.store(queued as u32, Relaxed);
         }
         while done < frames {
             let n = (frames - done).min(inp.len());
@@ -428,13 +475,18 @@ fn open_streams(
             if live { for s in input.iter_mut() { *s = cons.pop().unwrap_or(0.0); } }
             else if shared.di_playing.load(Relaxed) && !di.is_empty() { for s in input.iter_mut() { *s = di[di_pos]; di_pos = (di_pos + 1) % di.len(); } }
             else { input.fill(0.0); }
+            if let Some(tuner) = di_tuner.as_mut() {
+                for &sample in input.iter() {
+                    let _ = tuner.push(sample);
+                }
+            }
             rack.process(input, &mut l[..n], &mut r[..n], &mut trash);
             mr = mr.max(rack.meters.raw); mi = mi.max(rack.meters.input); mo = mo.max(rack.meters.output);
             let rec = shared.recording.load(Relaxed);
             for i in 0..n {
                 let (mut a, mut b) = (l[i], r[i]);
                 if rec { let _ = rprod.push(a); let _ = rprod.push(b); }
-                let _ = aprod.push(a); let _ = iprod.push(input[i]);
+                let _ = aprod.push(a);
                 if metro { // click on every beat, accent on the first of four
                     let period = (srf * 60.0 / bpm) as u64; let ph = metro_n % period; let beat = (metro_n / period) % 4;
                     if (ph as f32) < srf * 0.05 { let t = ph as f32 / srf; let f = if beat == 0 { 1760.0 } else { 1320.0 }; let c = (t * f * std::f32::consts::TAU).sin() * (-t * 90.0).exp() * mlev * 0.5; a += c; b += c; }
@@ -451,32 +503,118 @@ fn open_streams(
         }
         shared.meter_raw.store(f2u(mr), Relaxed); shared.meter_in.store(f2u(mi), Relaxed); shared.meter_out.store(f2u(mo), Relaxed); shared.gate_open.store(rack.meters.gate_open, Relaxed);
     }, |err| eprintln!("[gc] output stream error: {err}"), None).map_err(|e| format!("выход: {e}"))?;
-    out_stream.play().map_err(|e| e.to_string())?;
-    streams.push(out_stream);
+    // Opening the output can set the hardware sample rate of a duplex interface.
+    // Query the input afterward so its resampler and tuner see the current rate.
+    let mut streams = vec![out_stream];
+    let mut in_name = None;
+    let mut in_ch = 0;
+    let mut channel = cfg.channel;
+    let mut tuner_rate = sr;
+    if live {
+        let in_dev = find_device(&host, cfg.input.as_deref(), true).ok_or("нет устройства входа")?;
+        let icfg = in_dev.default_input_config().map_err(|e| e.to_string())?;
+        in_ch = icfg.channels(); channel = channel.min(in_ch.saturating_sub(1));
+        let in_sr = icfg.sample_rate().0;
+        tuner_rate = in_sr;
+        let mut tuner_input = live_tuner.unwrap();
+        let capture_frames = capture_frames.clone();
+        let shared = e.shared.clone();
+        in_name = in_dev.name().ok();
+        let ratio = in_sr as f32 / sr as f32; let mut phase = 0f32; let mut prev = 0f32;
+        let ch = channel as usize; let nch = in_ch as usize;
+        let format = icfg.sample_format();
+        let s = in_dev.build_input_stream_raw(&cpal::StreamConfig { channels: in_ch, sample_rate: cpal::SampleRate(in_sr), buffer_size: cpal::BufferSize::Fixed(buffer) },
+            format, move |data, info| {
+                let timestamp = info.timestamp();
+                let latency = timestamp.callback.duration_since(&timestamp.capture);
+                shared.in_latency_us.store(latency.map_or(0, |d| d.as_micros().min(u32::MAX as u128) as u32), Relaxed);
+                capture_frames.store(((data.len() / nch) as f32 / ratio).ceil() as u32, Relaxed);
+                sample_types!(format, T, if let Some(data) = data.as_slice::<T>() {
+                    capture_samples(data, nch, ch, |x| {
+                        let _ = tuner_input.push(x);
+                        if (ratio - 1.0).abs() < 1e-4 { let _ = prod.push(x); return; }
+                        while phase < 1.0 { let _ = prod.push(prev + (x - prev) * phase); phase += ratio; }
+                        phase -= 1.0; prev = x;
+                    });
+                });
+            }, |err| eprintln!("[gc] input stream error: {err}"), None).map_err(|e| format!("вход: {e}"))?;
+        streams.push(s);
+    }
+
+    for stream in &streams {
+        stream.play().map_err(|e| e.to_string())?;
+    }
     *e.tx.lock() = Some(tx);
     e.shared.live.store(live, Relaxed);
 
     // analysis / recorder thread for this stream generation
-    let an = e.analysis.clone(); let shared2 = e.shared.clone();
-    std::thread::Builder::new().name("gc-analysis".into()).spawn(move || loop {
+    let an = e.analysis.clone();
+    {
+        let mut analysis = an.lock();
+        analysis.inp_rate = tuner_rate;
+        analysis.inp.resize(tuner_rate as usize * gc_dsp::analysis::TUNER_WINDOW_MS / 1000, 0.0);
+        analysis.inp_pos = 0;
+        analysis.inp_count = 0;
+        analysis.inp_updated = None;
+    }
+    let analysis_worker = std::thread::Builder::new().name("gc-analysis".into()).spawn(move || loop {
         let mut got = false;
-        { let mut a = an.lock();
-          while let Ok(x) = acons.pop() { let p = a.out_pos; a.out[p] = x; a.out_pos = (p + 1) % a.out.len(); got = true; }
-          while let Ok(x) = icons.pop() { let p = a.inp_pos; a.inp[p] = x; a.inp_pos = (p + 1) % a.inp.len(); }
-          if let Some((w, _)) = a.writer.as_mut() { while let Ok(x) = rcons.pop() { let _ = w.write_sample((x.clamp(-1.0, 1.0) * 32767.0) as i16); } } else { while rcons.pop().is_ok() {} }
+        {
+            let mut a = an.lock();
+            while let Ok(x) = acons.pop() {
+                let pos = a.out_pos;
+                a.out[pos] = x;
+                a.out_pos = (pos + 1) % a.out.len();
+                got = true;
+            }
+            let mut count = 0;
+            while let Ok(x) = tuner_consumer.pop() {
+                let pos = a.inp_pos;
+                a.inp[pos] = x;
+                a.inp_pos = (pos + 1) % a.inp.len();
+                count += 1;
+            }
+            if count > 0 {
+                a.inp_count = (a.inp_count + count).min(a.inp.len());
+                a.inp_updated = Some(Instant::now());
+            }
+            if let Some((w, _)) = a.writer.as_mut() {
+                while let Ok(x) = rcons.pop() {
+                    let _ = w.write_sample((x.clamp(-1.0, 1.0) * 32767.0) as i16);
+                }
+            } else {
+                while rcons.pop().is_ok() {}
+            }
         }
         if acons.is_abandoned() && !got { break; }
-        let _ = &shared2;
-        std::thread::sleep(std::time::Duration::from_millis(15));
+        std::thread::sleep(Duration::from_millis(15));
     }).unwrap();
 
     let info = StreamInfo { sample_rate: sr, buffer, output: out_dev.name().unwrap_or_default(), input: in_name, in_channels: in_ch, channel, out_channels: out_ch, sample_rates: rates };
-    Ok((streams, info))
+    Ok((ActiveStreams { streams, analysis_worker }, info))
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn live_queue_keeps_only_a_small_reserve_at_256_frames() {
+        let (mut producer, mut consumer) = rtrb::RingBuffer::new(4096);
+        for i in 0..512 {
+            producer.push(i as f32).unwrap();
+        }
+        // Two arriving callbacks are normal when input and output wake at different times.
+        assert_eq!(trim_live_queue(&mut consumer, 256, 256), 256);
+        assert_eq!(consumer.slots(), 512);
+
+        for i in 512..1024 {
+            producer.push(i as f32).unwrap();
+        }
+        assert_eq!(trim_live_queue(&mut consumer, 256, 256), 64);
+        assert_eq!(consumer.slots(), 320);
+        assert_eq!(consumer.pop().unwrap(), 704.0);
+    }
 
     #[test]
     fn integer_audio_uses_the_selected_inputs_and_output_pair() {

@@ -22,7 +22,6 @@ struct State {
     reference: Cell<f64>,
     muted: Cell<bool>,
     busy: Cell<bool>,
-    last_poll: Cell<f64>,
     last_hit: Cell<f64>,
     reading: RefCell<Option<Reading>>,
 }
@@ -92,11 +91,35 @@ impl State {
             el.set_text_content(Some(&text));
         }
     }
+    fn poll(self: &Rc<Self>) {
+        if self.busy.replace(true) {
+            return;
+        }
+        let s = self.clone();
+        spawn_local(async move {
+            let args = js(&json!({"a4":s.reference.get()})).unwrap();
+            if let Ok(v) = host::command("engine_tuner", &args).await {
+                if let Ok(data) = read::<Option<Reading>>(v) {
+                    let t = host::now();
+                    if data.is_some() {
+                        s.last_hit.set(t);
+                        s.reading.replace(data);
+                    } else if t - s.last_hit.get() > 250. {
+                        s.reading.replace(None);
+                    }
+                    s.render();
+                }
+            }
+            s.busy.set(false);
+        });
+    }
 }
 #[wasm_bindgen]
 pub struct Tuner {
     state: Rc<State>,
     escape: Closure<dyn FnMut(Event)>,
+    poll_timer: i32,
+    _poll: Closure<dyn FnMut()>,
 }
 #[wasm_bindgen]
 impl Tuner {
@@ -107,7 +130,6 @@ impl Tuner {
             reference: Cell::new(440.),
             muted: Cell::new(true),
             busy: Cell::new(false),
-            last_poll: Cell::new(-100.),
             last_hit: Cell::new(0.),
             reading: RefCell::new(None),
         });
@@ -124,7 +146,20 @@ impl Tuner {
         doc()
             .add_event_listener_with_callback("keydown", escape.as_ref().unchecked_ref())
             .unwrap();
-        Tuner { state, escape }
+        let weak = Rc::downgrade(&state);
+        let poll = Closure::<dyn FnMut()>::new(move || {
+            if let Some(state) = weak.upgrade() {
+                state.poll();
+            }
+        });
+        let poll_timer = web_sys::window()
+            .unwrap()
+            .set_interval_with_callback_and_timeout_and_arguments_0(
+                poll.as_ref().unchecked_ref(),
+                80,
+            )
+            .unwrap();
+        Tuner { state, escape, poll_timer, _poll: poll }
     }
     #[wasm_bindgen(getter)]
     pub fn open(&self) -> bool {
@@ -242,34 +277,11 @@ impl Tuner {
         doc().body().unwrap().append_child(&el).unwrap();
         s.render();
     }
-    pub fn tick(&self) {
-        let s = &self.state;
-        let now = host::now();
-        if now - s.last_poll.get() < 80. || s.busy.replace(true) {
-            return;
-        }
-        s.last_poll.set(now);
-        let s = s.clone();
-        spawn_local(async move {
-            let args = js(&json!({"a4":s.reference.get()})).unwrap();
-            if let Ok(v) = host::command("engine_tuner", &args).await {
-                if let Ok(data) = read::<Option<Reading>>(v) {
-                    let t = host::now();
-                    if data.is_some() {
-                        s.last_hit.set(t);
-                        s.reading.replace(data);
-                    } else if t - s.last_hit.get() > 700. {
-                        s.reading.replace(None);
-                    }
-                    s.render();
-                }
-            }
-            s.busy.set(false);
-        });
-    }
+
 }
 impl Drop for Tuner {
     fn drop(&mut self) {
+        web_sys::window().unwrap().clear_interval_with_handle(self.poll_timer);
         let _ = doc()
             .remove_event_listener_with_callback("keydown", self.escape.as_ref().unchecked_ref());
         if self.state.open.get() {

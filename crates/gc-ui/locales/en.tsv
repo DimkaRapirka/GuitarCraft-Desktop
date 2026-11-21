@@ -49,7 +49,7 @@ DI-запись	DI recording
 Частота дискретизации	Sample rate
 Частоты, которые поддерживает устройство выхода	Rates supported by the output device
 Размер буфера	Buffer size
-Применяется сразу. Если слышны щелчки, увеличьте буфер.	Applies immediately. Increase the buffer if you hear clicks.
+Фактический буфер зависит от драйвера. Если слышны щелчки, увеличьте размер.	Actual buffer size depends on your driver. If you hear clicks, increase the size.
 MIDI-устройства	MIDI devices
 MIDI-контроллеры не найдены. Подключите футконтроллер или клавиатуру по USB: список обновится сам.	Connect a USB MIDI controller or keyboard. The device list updates automatically.
 ● подключено	● Connected
@@ -90,7 +90,7 @@ GuitarCraft может принимать команды от AI-агента (C
 Порог гейта	Gate threshold
 Release гейта	Gate release
 Транспонирование	Transpose
-Оценка задержки вывода (буфер + устройство). Открыть настройки аудио	Estimated output latency (buffer and device). Open audio settings.
+Оценка задержки. Открыть настройки аудио	Estimated latency. Open audio settings.
 Пробел	Space
 Свой файл…	Open audio file…
 Риффы — палм-мьют	Riffs — palm mute
@@ -358,8 +358,9 @@ Delay и Reverb	Delay & reverb
 {}% (отн.)	{}% (relative)
 вплотную	At grille
 {} · {} · {}% от центра	{} · {} · {}% from center
-Оценка задержки вывода: ≈{} мс	Estimated output latency ≈{} ms
-буфер {} мс + устройство вывода {} мс. Измерено Rust-ядром через cpal. Задержка входа интерфейса (обычно 1–3 мс) сюда не входит	Buffer {} ms + output device {} ms. Measured by the audio engine. Input latency is additional.
+Оценка задержки: ≈{} мс	Estimated latency ≈{} ms
+Вход {} мс + очередь {} мс + выход {} мс	Input {} ms + queue {} ms + output {} ms
+Выход {} мс	Output {} ms
 {} сэмплов · {} мс	{} samples · {} ms
 Последнее обращение агента: {}	Last agent request at {}
 Последнее сообщение: [{}] от {}	Last message [{}] from {}
