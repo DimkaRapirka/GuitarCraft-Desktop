@@ -244,7 +244,8 @@ impl Panel {
         if playing {
             let id = text(&a, "pedalId");
             child(&self.now, "i", "now-dot", "");
-            let head = child(&self.now, "span", "", Сейчас звучит: ");
+            let prefix = crate::i18n::text("Сейчас звучит:");
+            let head = child(&self.now, "span", "", &format!("{prefix} "));
             child(&head, "b", "", text(&self.info(id)?, "name"));
             self.ab(&self.now, &a, false)?;
             action(&self.now, "stop", "", "■ Стоп", "");
