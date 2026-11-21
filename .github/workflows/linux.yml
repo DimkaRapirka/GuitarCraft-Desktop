@@ -27,6 +27,7 @@ jobs:
           set -e
           deb=$(find target/release/bundle/deb -name '*.deb' -print -quit)
           test "$(dpkg-deb -f "$deb" Architecture)" = amd64
+          [[ "$(dpkg-deb -f "$deb" Depends)" == *"libasound2 | libasound2t64"* ]]
           sudo apt-get install -y "./$deb"
           handshake=$(printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}' | guitarcraft-mcp)
           jq -e '.result.serverInfo.name == "guitarcraft"' <<< "$handshake"
