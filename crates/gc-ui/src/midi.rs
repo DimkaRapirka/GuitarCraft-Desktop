@@ -172,11 +172,11 @@ impl Input {
                 if found.is_none() {
                     self.toast(format!(
                         "MIDI PC {number}: {}",
-                        if mapped.is_some() {
+                        crate::i18n::text(if mapped.is_some() {
                             "пресет не найден"
                         } else {
                             "не назначен"
-                        }
+                        })
                     ));
                 }
                 found
@@ -292,8 +292,9 @@ impl Midi {
         };
         target["name"] = json!(title);
         self.inner.learning.replace(Some(target));
-        self.inner.toast(format!(
-            "MIDI Learn: «{title}». Подвигайте регулятор на контроллере."
+        self.inner.toast(crate::i18n::message(
+            "MIDI Learn: «{}». Подвигайте регулятор на контроллере.",
+            &[&title],
         ));
         let seq = self.inner.sequence.get().wrapping_add(1);
         self.inner.sequence.set(seq);

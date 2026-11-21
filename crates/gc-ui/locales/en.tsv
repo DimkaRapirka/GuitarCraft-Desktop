@@ -523,3 +523,21 @@ JS-модули работали в Web Audio. В Rust-ядре не испол�
 яркий	bright
 яркость	brightness
 🤖 Агент {}	🤖 Agent {}
+ищет в каталоге	Search catalog
+добавляет педаль	Add pedal
+переставляет блок	Move block
+убирает	Remove block
+заменяет	Replace block
+меняет параметр	Set parameter
+меняет параметры	Set parameters
+сохраняет пресет	Save preset
+отменяет	Undo
+слушает и анализирует звук	Analyze tone
+смотрит цепочку	Inspect chain
+переключает блок	Toggle block
+собирает педаль	Build pedal
+низ {} дБ (к эталону {}) · середина {} · верх {}	Low {} dB (vs reference {}) · Mid {} · High {}
+Повторено: {}	Redid {}
+Отменено: {}	Undid {}
+Пресет «{}»	Preset “{}”
+MIDI Learn: «{}». Подвигайте регулятор на контроллере.	MIDI Learn for “{}”. Move a control on your MIDI device.

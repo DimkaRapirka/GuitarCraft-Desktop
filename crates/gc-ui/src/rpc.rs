@@ -560,12 +560,15 @@ fn handler(app: JsValue, internal: bool) -> JsValue {
                 if method.starts_with("settings."){return Err(crate::err("Настройки недоступны агенту".into()));}
                 set(&app,"lastAgentCall",&js_sys::Date::now().into());
                 let verb=match method.as_str(){"catalog.search"=>"ищет в каталоге","chain.add"=>"добавляет педаль","chain.move"=>"переставляет блок","chain.remove"=>"убирает","chain.replace"=>"заменяет","param.set"=>"меняет параметр","params.set"=>"меняет параметры","preset.save"=>"сохраняет пресет","history.undo"=>"отменяет","tone.analyze"=>"слушает и анализирует звук","state.get"=>"смотрит цепочку","chain.toggle"=>"переключает блок","pedal.create"=>"собирает педаль",v=>v};
+                let verb=crate::i18n::text(verb);
                 let args=p.as_object().unwrap().iter().filter(|(k,v)|*k!="__source" && !v.is_null() && !v.is_object()&&!v.is_array()).map(|(k,v)|format!("{k}: {}",v.as_str().map(str::to_owned).unwrap_or_else(||v.to_string()))).collect::<Vec<_>>().join(", ");
                 log(&app,if args.is_empty(){verb.to_owned()}else{format!("{verb} ({args})")},"call");
             }
             let res=dispatch(app.clone(),&method,p,&src).await;
             if src=="mcp"{match &res{Err(e)=>log(&app,format!("⚠ {}",message(e)),"error"),Ok(v)if method=="tone.analyze"=>{
-                let b=get(v,"bands_relative_db");let d=num(&get(v,"deviation_from_reference_db"),"low",0.);log(&app,format!("низ {} дБ (к эталону {}{d}) · середина {} · верх {}",num(&b,"low",0.),if d>0.{"+"}else{""},num(&b,"mid",0.),num(&b,"highmid",0.)),"result");
+                let b=get(v,"bands_relative_db");let d=num(&get(v,"deviation_from_reference_db"),"low",0.);log(&app,crate::i18n::message("низ {} дБ (к эталону {}) · середина {} · верх {}", &[
+                    &num(&b,"low",0.).to_string(), &format!("{d:+}"), &num(&b,"mid",0.).to_string(), &num(&b,"highmid",0.).to_string()
+                ]),"result");
             }_=>{}}}res
         })
     }).into_js_value()

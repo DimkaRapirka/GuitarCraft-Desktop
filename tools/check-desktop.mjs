@@ -129,7 +129,11 @@ try {
   await demo({click:'[data-sync="1/8."]'});
   assert((await dom('[data-rack=delay] .lcd-text b')).text.includes('450 ms'));
   await call('ui.select',{target:'cab'});
-  await screenshot('cabinet');
+  if (screenshotDir) {
+    await demo({hideCursor:true});
+    await delay(3600);
+    await screenshot('cabinet');
+  }
   await demo({click:'[data-cab="1x10-tiny"]'},{click:'#btn-closeup'});
   assert(await dom('.cab-pic.close'));
   assert(!(await call('skin.list')).some(skin => ['tokyo-ghoul', 'tokyo-ghoul-white'].includes(skin.id)));
@@ -173,7 +177,11 @@ try {
   if (screenshotDir) {
     await call('chain.add',{pedal:'gc.crown',before:'amp'});
     await call('chain.add',{pedal:'gc.spring',after:'cab'});
+    await call('preset.save',{name:'Velvet Crunch',bank:'Studio'});
+    await call('settings.set',{showAgentPanel:false});
     await call('ui.select',{target:fuzz});
+    await demo({hideCursor:true});
+    await delay(3600);
     await screenshot('pedalboard');
     await demo({click:'[data-plus="0"]'},{type:'#cat-search',text:'Fuzz Factory',cps:80},{hideCursor:true});
     await until(() => dom('.cat-detail [data-model="gc.fuzz-factory"]'));

@@ -124,7 +124,7 @@ impl Store {
         )?;
         self.changed(
             "structure",
-            js(&json!({"label":format!("Пресет «{}»",string(&preset,"name")),"preset":true}))?,
+            js(&json!({"label":crate::i18n::message("Пресет «{}»", &[&string(&preset, "name")]),"preset":true}))?,
         )
     }
     #[wasm_bindgen(js_name=markSaved)]
@@ -185,7 +185,7 @@ impl Store {
     fn history_step(&self, redo: bool, source: Option<String>) -> Result<JsValue, JsValue> {
         let l = invoke(&self.project, if redo { "redo" } else { "undo" }, &[])?;
         if let Some(label) = l.as_string() {
-            self.changed("structure",js(&json!({"label":format!("{}: {label}",if redo{"Повторено"}else{"Отменено"}),"source":source.as_deref().unwrap_or("ui"),if redo{"redo"}else{"undo"}:true}))?)?;
+            self.changed("structure",js(&json!({"label":crate::i18n::message(if redo {"Повторено: {}"} else {"Отменено: {}"}, &[crate::i18n::text(&label)]),"source":source.as_deref().unwrap_or("ui"),if redo{"redo"}else{"undo"}:true}))?)?;
         }
         Ok(l)
     }
