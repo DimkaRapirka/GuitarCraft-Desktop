@@ -170,7 +170,7 @@ impl Desktop {
                 "chain.add",
                 json!({"pedal":id,"index":index,"params":params}),
                 source,
-                |_| format!("Добавлено: {}", string(&d, "name")),
+                |_| crate::i18n::message("Добавлено: {}", &[&string(&d, "name")]),
             )?,
             "added",
         ))
@@ -189,7 +189,7 @@ impl Desktop {
             "chain.replace",
             json!({"target":uid,"pedal":id,"params":params}),
             source,
-            |_| format!("Замена: {}", string(&d, "name")),
+            |_| crate::i18n::message("Замена: {}", &[&string(&d, "name")]),
         )?;
         Ok(uid)
     }
@@ -357,7 +357,7 @@ impl Desktop {
         if map.is_object() {
             menu_item(
                 &m,
-                &format!("Убрать MIDI ({})", string(&map, "label")),
+                &crate::i18n::message("Убрать MIDI ({})", &[&string(&map, "label")]),
                 false,
                 move || invoke(&midi, "unmap", &[id.clone().into()]).map(drop),
             );

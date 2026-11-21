@@ -80,7 +80,11 @@ impl Project {
         } else {
             read(filters)?
         };
-        js(&self.rig.borrow().catalog.search(q, &filters))
+        js(&self
+            .rig
+            .borrow()
+            .catalog
+            .search_localized(q, &filters, crate::i18n::text))
     }
     pub fn summary(&self, def: JsValue) -> Result<JsValue, JsValue> {
         js(&self.rig.borrow().catalog.summary(&read(def)?))

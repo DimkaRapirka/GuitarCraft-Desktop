@@ -18,11 +18,19 @@ await once(probe, 'listening');
 const { port } = probe.address();
 await new Promise(resolve => probe.close(resolve));
 process.env.GC_CONTROL_FILE = path.join(data, 'control.json');
-const child = spawn(path.resolve(exe), [], {
+const launch = () => spawn(path.resolve(exe), [], {
   env: { ...process.env, GC_DATA_DIR: data, GC_DOCUMENTS_DIR: path.join(temp, 'docs'), GC_CONTROL_PORT: String(port) },
   stdio: ['ignore', 'ignore', 'inherit'],
 });
-const exit = once(child, 'exit');
+let child = launch();
+let exit = once(child, 'exit');
+async function restart() {
+  child.kill();
+  await exit;
+  child = launch();
+  exit = once(child, 'exit');
+  await until(async () => (await dom('#btn-settings'))?.text, 90000);
+}
 const dom = selector => call('eval.dom', { selector });
 const demo = (...steps) => call('demo.run', { steps });
 const screenshotDir = process.env.GC_SCREENSHOT_DIR;
@@ -56,6 +64,11 @@ try {
   await until(() => dom('#set-language option[value="en"]'));
   assert.equal((await dom('#set-language option[value="ru"]')).text, 'Русский');
   await call('ui.closeModals');
+  await call('ui.openSettings',{tab:'audio'});
+  await until(async () => (await dom('.lat-box b'))?.text.includes('Estimated output latency'));
+  assert((await dom('.lat-box span')).text.includes('Buffer'));
+  await call('ui.closeModals');
+  assert((await dom('#btn-latency')).text.includes('kHz'));
   assert.equal((await call('engine.status')).diPlaying, false);
   assert.equal((await dom('#btn-play')).text, '▶');
   await demo({click:'#btn-play'});
@@ -140,7 +153,7 @@ try {
   await call('preset.load',{name:'WASM QA'});
   assert.equal((await call('state.get')).preset,'WASM QA');
   await demo({click:'[data-plus="0"]'},{click:'#cat-build'},{click:'[data-add-block="gain"]'},{type:'#builder-name',text:' QA',cps:100},{click:'#builder-save'});
-  await until(async () => (await call('catalog.search',{query:'Моя педаль QA'})).some(d=>d.source==='user'));
+  await until(async () => (await call('catalog.search',{query:'My pedal QA'})).some(d=>d.source==='user'));
   await assert.rejects(call('state.get',{},'mcp'), /выключен/);
   await call('settings.set',{mcpEnabled:true});
   assert.equal((await call('state.get',{},'mcp')).preset,'WASM QA');
@@ -172,6 +185,18 @@ try {
   assert.equal((await call('state.get')).chain.find(block => block.uid === fuzz).params.stab.value,0.42);
   const ctl = JSON.parse(await readFile(process.env.GC_CONTROL_FILE,'utf8'));
   assert.equal(ctl.pid,child.pid);
+  for (const [language, settingsLabel, latencyLabel] of [
+    ['ru', 'НАСТРОЙКИ', 'Оценка задержки вывода'],
+    ['en', 'SETTINGS', 'Estimated output latency'],
+  ]) {
+    await call('settings.set', {language});
+    await restart();
+    assert(await dom('html[lang="' + language + '"]'));
+    assert((await dom('#btn-settings')).text.includes(settingsLabel));
+    await call('ui.openSettings',{tab:'audio'});
+    await until(async () => (await dom('.lat-box b'))?.text.includes(latencyLabel));
+    await call('ui.closeModals');
+  }
   console.log('Desktop UI, chain reordering, backgrounds, amp skin, catalog, MIDI, history, presets and MCP passed.');
 } finally {
   if (child.exitCode === null && child.signalCode === null) child.kill();

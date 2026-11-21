@@ -196,7 +196,11 @@ impl Builder {
         attr(&bind, "data-edit", "binding");
         option(&bind, "", "число");
         for k in knobs {
-            option(&bind, text(k, "id"), &format!("ручка {}", text(k, "name")));
+            option(
+                &bind,
+                text(k, "id"),
+                &crate::i18n::message("ручка {}", &[text(k, "name")]),
+            );
         }
         selected(&bind, text(value, "knob"));
         if value.is_object() {
@@ -362,12 +366,12 @@ impl Builder {
             compile_pedal(&draft).map_err(crate::err)?;
             command("write_json",&js(&json!({"kind":"pedals","name":format!("{}.gcpedal.json",text(&draft,"id")),"data":draft}))?).await?;
             resolved(invoke(&get(&self.app,"catalog"),"loadUserPedals",&[])?).await?;
-            self.notify(&format!("«{}» сохранена в каталог (Мои)",text(&draft,"name")));
+            self.notify(&crate::i18n::message("«{}» сохранена в каталог (Мои)", &[text(&draft,"name")]));
             if self.modal.is_connected(){close_builder();} Ok(())
         }.await;
         self.saving.set(false);
         if let Err(e) = result {
-            self.notify(&format!("Ошибка: {}", error_message(&e)));
+            self.notify(&crate::i18n::message("Ошибка: {}", &[&error_message(&e)]));
         }
     }
     fn click(self: &Rc<Self>, target: Element) -> Result<(), JsValue> {
@@ -571,7 +575,12 @@ pub fn open_builder(app: JsValue, initial: JsValue) -> Result<(), JsValue> {
     let mut draft: Value = if initial.is_object() {
         read(initial)?
     } else {
-        serde_json::from_str(include_str!("builder-template.json")).unwrap()
+        let mut pedal: Value = serde_json::from_str(include_str!("builder-template.json")).unwrap();
+        for key in ["name", "desc"] {
+            pedal[key] = json!(crate::i18n::text(text(&pedal, key)));
+        }
+        pedal["character"] = json!([crate::i18n::text("мой звук")]);
+        pedal
     };
     if !draft.is_object() {
         return Err(crate::err("Неверный формат педали".into()));

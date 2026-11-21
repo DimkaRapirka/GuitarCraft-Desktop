@@ -88,9 +88,9 @@ fn info(app: &JsValue, p: &Element) -> Result<(), JsValue> {
             " {} · {}",
             string(&def, "type"),
             if get(&block, "on") == false {
-                "выключена"
+                crate::i18n::text("выключена")
             } else {
-                "включена"
+                crate::i18n::text("включена")
             }
         ),
     );

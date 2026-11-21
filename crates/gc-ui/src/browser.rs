@@ -112,7 +112,12 @@ impl Panel {
                     }
                 })
                 .count();
-            let opt = child(&self.sources, "option", "", &format!("{name} ({count})"));
+            let opt = child(
+                &self.sources,
+                "option",
+                "",
+                &format!("{} ({count})", crate::i18n::text(name)),
+            );
             data(&opt, "value", id);
         }
         set(&self.sources, "value", &st.source.clone().into());
@@ -169,6 +174,7 @@ impl Panel {
             let tags = list(&d["character"])
                 .iter()
                 .filter_map(Value::as_str)
+                .map(crate::i18n::text)
                 .take(3)
                 .collect::<Vec<_>>()
                 .join(", ");
@@ -209,7 +215,7 @@ impl Panel {
             &format!(
                 "A: {}",
                 if self.replacing.is_empty() {
-                    "без педали"
+                    crate::i18n::text("без педали")
                 } else {
                     &self.replacing
                 }
@@ -320,7 +326,7 @@ impl Panel {
             &info,
             "div",
             "muted",
-            &format!("{} · {cat}", text(&d, "type")),
+            &format!("{} · {}", text(&d, "type"), crate::i18n::text(cat)),
         );
         child(&info, "p", "", text(&d, "desc"));
         let tags = child(&info, "div", "tags", "");

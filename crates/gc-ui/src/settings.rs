@@ -221,7 +221,7 @@ impl Panel {
                     "set-language",
                     crate::i18n::LANGUAGES
                         .iter()
-                        .map(|(id, name)| (id.to_string(), name.to_string()))
+                        .map(|locale| (locale.id.to_owned(), locale.name.to_owned()))
                         .collect(),
                     crate::i18n::language(text(&s, "language")),
                 );
@@ -278,7 +278,7 @@ impl Panel {
             }
             _ => {
                 child(p, "h3", "", "GuitarCraft");
-                child(p,"p","muted","Усилитель, педали и кабинеты для электрогитары. DSP на Rust, 4× оверсэмплинг в перегрузах. Сделано для getartcraft.com.");
+                child(p,"p","muted","Усилитель, педали и кабинеты для электрогитары. DSP на Rust, 4× оверсэмплинг в перегрузах.");
             }
         }
         Ok(())
@@ -294,12 +294,12 @@ impl Panel {
             &lat,
             "b",
             "",
-            &format!(
-                "Оценка задержки вывода: ≈{:.0} мс",
-                num(&engine, "latencyMs", 0.)
+            &crate::i18n::message(
+                "Оценка задержки вывода: ≈{} мс",
+                &[&format!("{:.0}", num(&engine, "latencyMs", 0.))],
             ),
         );
-        child(&lat,"span","",&format!("буфер {:.1} мс + устройство вывода {:.1} мс. Измерено Rust-ядром через cpal. Задержка входа интерфейса (обычно 1–3 мс) сюда не входит",status["base_ms"].as_f64().unwrap_or(0.),status["out_ms"].as_f64().unwrap_or(0.)));
+        child(&lat,"span","",&crate::i18n::message("буфер {} мс + устройство вывода {} мс. Измерено Rust-ядром через cpal. Задержка входа интерфейса (обычно 1–3 мс) сюда не входит", &[&format!("{:.1}", status["base_ms"].as_f64().unwrap_or(0.)), &format!("{:.1}", status["out_ms"].as_f64().unwrap_or(0.))]));
         child(p, "h3", "", "Источник");
         let seg = child(&row(p, "Что подаётся на вход", ""), "div", "seg", "");
         button(
@@ -449,7 +449,10 @@ impl Panel {
                 .map(|n| {
                     (
                         n.to_string(),
-                        format!("{n} сэмплов · {:.1} мс", n as f64 / sr * 1000.),
+                        crate::i18n::message(
+                            "{} сэмплов · {} мс",
+                            &[&n.to_string(), &format!("{:.1}", n as f64 / sr * 1000.)],
+                        ),
                     )
                 })
                 .collect(),
@@ -475,7 +478,7 @@ impl Panel {
                 let e = row(p, text(&port, "name"), "");
                 e.class_list().add_1("muted")?;
                 e.set_text_content(Some(if port["state"] == "connected" {
-                    "● подключено"
+                    crate::i18n::text("● подключено")
                 } else {
                     text(&port, "state")
                 }));
@@ -556,14 +559,16 @@ impl Panel {
                 p,
                 "p",
                 "muted small",
-                &format!(
+                &crate::i18n::message(
                     "Последнее сообщение: [{}] от {}",
-                    list(&last["data"])
-                        .iter()
-                        .map(Value::to_string)
-                        .collect::<Vec<_>>()
-                        .join(", "),
-                    text(&last, "from")
+                    &[
+                        &list(&last["data"])
+                            .iter()
+                            .map(Value::to_string)
+                            .collect::<Vec<_>>()
+                            .join(", "),
+                        text(&last, "from"),
+                    ],
                 ),
             );
         }
@@ -666,12 +671,12 @@ impl Panel {
             button(&cmds, "copy", "", "Скопировать конфигурацию", false);
             let last = get(&self.app, "lastAgentCall");
             let msg = if last.is_truthy() {
-                format!(
+                crate::i18n::message(
                     "Последнее обращение агента: {}",
-                    js_sys::Date::new(&last)
-                        .to_locale_time_string("ru-RU")
+                    &[&js_sys::Date::new(&last)
+                        .to_locale_time_string(crate::i18n::language(text(s, "language")))
                         .as_string()
-                        .unwrap_or_default()
+                        .unwrap_or_default()],
                 )
             } else {
                 "Агент ещё не подключался в этой сессии.".into()

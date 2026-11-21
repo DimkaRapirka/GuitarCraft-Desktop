@@ -26,8 +26,9 @@ fn info(b: &Value, s: &Value) -> Result<Info, JsValue> {
         "gate" => (
             "Gate".into(),
             format!(
-                "{:.0} дБ",
-                s["input"]["gate"]["threshold"].as_f64().unwrap_or(-62.)
+                "{:.0} {}",
+                s["input"]["gate"]["threshold"].as_f64().unwrap_or(-62.),
+                crate::i18n::text("дБ")
             ),
             "#666".into(),
             String::new(),
@@ -79,7 +80,7 @@ fn info(b: &Value, s: &Value) -> Result<Info, JsValue> {
                     (
                         "Delay",
                         if !sync.is_empty() && sync != "off" {
-                            format!("Эхо · {sync}")
+                            format!("{} · {sync}", crate::i18n::text("Эхо"))
                         } else {
                             "Эхо".into()
                         },

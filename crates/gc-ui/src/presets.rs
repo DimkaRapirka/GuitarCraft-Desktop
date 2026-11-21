@@ -173,7 +173,7 @@ async fn save(
     let name = match name.filter(|n| !n.is_empty()) {
         Some(n) => n,
         None if as_new && src == "ui" => {
-            let pretty = format!("{} (мой)", n.split(" — ").next().unwrap_or(&n));
+            let pretty = crate::i18n::message("{} (мой)", &[n.split(" — ").next().unwrap_or(&n)]);
             let Some(n) = resolved(dialog("Название пресета", Some(&pretty))?.into())
                 .await?
                 .as_string()
@@ -375,7 +375,10 @@ impl Desktop {
         };
         if web_sys::window()
             .unwrap()
-            .confirm_with_message(&format!("Удалить пресет «{}»?", text(&p, "name")))?
+            .confirm_with_message(&crate::i18n::message(
+                "Удалить пресет «{}»?",
+                &[text(&p, "name")],
+            ))?
         {
             command("presets_delete", &js(&json!({"file":p["file"]}))?).await?;
             refresh().await?;

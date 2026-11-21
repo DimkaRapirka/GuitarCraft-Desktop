@@ -114,6 +114,14 @@ impl Catalog {
         self.prefs.recent.truncate(12);
     }
     pub fn search(&self, query: &str, filters: &Value) -> Vec<&Value> {
+        self.search_localized(query, filters, |label| label)
+    }
+    pub fn search_localized(
+        &self,
+        query: &str,
+        filters: &Value,
+        translate: impl Fn(&str) -> &str,
+    ) -> Vec<&Value> {
         let query = norm(query);
         let tokens: Vec<_> = query
             .split(|c: char| c.is_whitespace() || c == ',')
@@ -160,7 +168,7 @@ impl Catalog {
             let chars = list(&d["character"])
                 .iter()
                 .filter_map(Value::as_str)
-                .map(norm)
+                .flat_map(|tag| [norm(tag), norm(translate(tag))])
                 .collect::<Vec<_>>();
             let mut score = 0;
             for (token, stem) in &tokens {

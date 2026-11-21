@@ -76,7 +76,11 @@ pub async fn apply_audio(app: JsValue) -> Result<(), JsValue> {
             .as_string()
             .or_else(|| error.as_string())
             .unwrap_or_default();
-        invoke(&app, "toast", &[format!("Аудио: {why}").into()])?;
+        invoke(
+            &app,
+            "toast",
+            &[crate::i18n::message("Аудио: {}", &[&why]).into()],
+        )?;
         if string(&s, "inputMode") == "live" {
             save_settings(app.clone(), js(&json!({"inputMode":"di"}))?).await?;
             let _ = host::resolved(invoke(&e, "configure", &[js(&json!({"mode":"di"}))?])?).await;

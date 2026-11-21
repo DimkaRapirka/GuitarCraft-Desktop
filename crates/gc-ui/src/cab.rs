@@ -171,13 +171,15 @@ pub fn render_cab(app: JsValue, stage: Element) -> Result<Element, JsValue> {
     }
     let under = child(&front, "div", "cab-under", "");
     let caption = if ir {
-        format!("Свой IR · {}", text(&c, "irName"))
+        crate::i18n::message("Свой IR · {}", &[text(&c, "irName")])
     } else {
-        format!(
-            "{} · {} · {:.0}% от центра",
-            text(&EQUIPMENT["cabs"][text(&c, "model")], "name"),
-            text(&EQUIPMENT["mics"][text(&c, "mic")], "name"),
-            100. * n(&c, "position", 0.3)
+        crate::i18n::message(
+            "{} · {} · {}% от центра",
+            &[
+                text(&EQUIPMENT["cabs"][text(&c, "model")], "name"),
+                text(&EQUIPMENT["mics"][text(&c, "mic")], "name"),
+                &format!("{:.0}", 100. * n(&c, "position", 0.3)),
+            ],
         )
     };
     child(&under, "span", "cab-caption", &caption);

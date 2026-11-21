@@ -113,7 +113,7 @@ pub async fn pick(app: &JsValue, scene: &str) -> Result<(), JsValue> {
         invoke(
             app,
             "toast",
-            &[format!("Фон выбран · {}", image.label()).into()],
+            &[crate::i18n::message("Фон выбран · {}", &[&image.label()]).into()],
         )?;
     }
     Ok(())

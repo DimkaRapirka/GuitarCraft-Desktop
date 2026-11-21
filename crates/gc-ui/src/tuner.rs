@@ -82,8 +82,13 @@ impl State {
         }
         if let Some(el) = doc().get_element_by_id("tn-info") {
             let text = r
-                .map(|v| format!("{} Гц · {} центов", v.freq, signed(v.cents)))
-                .unwrap_or_else(|| "Сыграйте открытую струну".into());
+                .map(|v| {
+                    crate::i18n::message(
+                        "{} Гц · {} центов",
+                        &[&v.freq.to_string(), &signed(v.cents)],
+                    )
+                })
+                .unwrap_or_else(|| crate::i18n::text("Сыграйте открытую струну").into());
             el.set_text_content(Some(&text));
         }
     }
@@ -184,7 +189,9 @@ impl Tuner {
         input.set_min("415");
         input.set_max("466");
         input.set_value_as_number(s.reference.get());
-        label.append_child(&doc().create_text_node(" Гц")).unwrap();
+        label
+            .append_child(&doc().create_text_node(&format!(" {}", crate::i18n::text("Гц"))))
+            .unwrap();
         let state = s.clone();
         listen(&input, "change", move |e| {
             if let Some(i) = e
@@ -205,7 +212,11 @@ impl Tuner {
             &row,
             "button",
             "tn-mute",
-            if s.muted.get() { "MUTE" } else { "ЗВУК" },
+            if s.muted.get() {
+                "MUTE"
+            } else {
+                crate::i18n::text("ЗВУК")
+            },
         );
         let _ = mute.class_list().toggle_with_force("on", s.muted.get());
         let state = s.clone();
@@ -218,7 +229,11 @@ impl Tuner {
                 .and_then(|t| t.dyn_into::<web_sys::Element>().ok())
             {
                 let _ = b.class_list().toggle_with_force("on", on);
-                b.set_text_content(Some(if on { "MUTE" } else { "ЗВУК" }));
+                b.set_text_content(Some(if on {
+                    "MUTE"
+                } else {
+                    crate::i18n::text("ЗВУК")
+                }));
             }
         });
         let close = child(&row, "button", "", "Закрыть");

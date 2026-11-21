@@ -43,22 +43,29 @@ pub fn fmt(p: &JsValue, v: f64) -> String {
         }
     }
     match string(p, "format").as_str() {
-        "cab-position" => return format!("{}% от центра", (v * 100.).round()),
+        "cab-position" => {
+            return crate::i18n::message("{}% от центра", &[&(v * 100.).round().to_string()])
+        }
         "cab-distance" => {
             return if v < 0.15 {
-                "вплотную".into()
+                crate::i18n::text("вплотную").into()
             } else {
-                format!("{}% (отн.)", (v * 100.).round())
+                crate::i18n::message("{}% (отн.)", &[&(v * 100.).round().to_string()])
             }
         }
         "cab-level" => {
             let db = (v - 0.5) * 24.;
-            return format!("{}{db:.1} дБ", if db > 0. { "+" } else { "" });
+            return format!(
+                "{}{db:.1} {}",
+                if db > 0. { "+" } else { "" },
+                crate::i18n::text("дБ")
+            );
         }
         "delay-tone" => {
             return format!(
-                "{} кГц",
-                (1500. * 8_f64.powf(v.clamp(0., 1.)) / 100.).round() / 10.
+                "{} {}",
+                (1500. * 8_f64.powf(v.clamp(0., 1.)) / 100.).round() / 10.,
+                crate::i18n::text("кГц")
             )
         }
         _ => {}
@@ -67,12 +74,12 @@ pub fn fmt(p: &JsValue, v: f64) -> String {
     match string(p, "unit").as_str() {
         "%" => format!("{}%", (v * 100.).round()),
         "st" => format!("{sign}{} st", v.round()),
-        "Гц" if v >= 10000. => format!("{:.1} кГц", v / 1000.),
-        "Гц" if v >= 1000. => format!("{:.2} кГц", v / 1000.),
-        "Гц" => format!("{} Гц", v.round()),
-        "дБ" => format!("{sign}{v:.1} дБ"),
-        "мс" => format!("{} мс", v.round()),
-        "с" => format!("{v:.1} с"),
+        "Гц" if v >= 10000. => format!("{:.1} {}", v / 1000., crate::i18n::text("кГц")),
+        "Гц" if v >= 1000. => format!("{:.2} {}", v / 1000., crate::i18n::text("кГц")),
+        "Гц" => format!("{} {}", v.round(), crate::i18n::text("Гц")),
+        "дБ" => format!("{sign}{v:.1} {}", crate::i18n::text("дБ")),
+        "мс" => format!("{} {}", v.round(), crate::i18n::text("мс")),
+        "с" => format!("{v:.1} {}", crate::i18n::text("с")),
         _ if num(p, "min", 0.) == 0. && num(p, "max", 1.) == 1. => format!("{:.1}", v * 10.),
         _ if num(p, "max", 0.) > 2. && num(p, "max", 0.).fract() == 0. => format!("{}", v.round()),
         _ => format!("{v:.2}"),

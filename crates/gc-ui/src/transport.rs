@@ -380,10 +380,13 @@ pub fn render_footer() -> Result<(), JsValue> {
         "btn-latency",
         "lat",
         "Оценка задержки вывода (буфер + устройство). Открыть настройки аудио",
-        &format!(
-            "{} кГц · ≈{:.0} мс",
-            (num(&get(&engine, "ctx"), "sampleRate", 48000.) / 100.).round() / 10.,
-            num(&engine, "latencyMs", 0.)
+        &crate::i18n::message(
+            "{} кГц · ≈{} мс",
+            &[
+                &((num(&get(&engine, "ctx"), "sampleRate", 48000.) / 100.).round() / 10.)
+                    .to_string(),
+                &format!("{:.0}", num(&engine, "latencyMs", 0.)),
+            ],
         ),
     );
     on(&b, "click", &a, |a, _| {

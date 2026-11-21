@@ -283,7 +283,7 @@ impl Midi {
         let id = text(&target, "id");
         let name = text(&target, "name");
         let title = if target["type"] == "bypass" {
-            format!("{name} › вкл/выкл")
+            crate::i18n::message("{} › вкл/выкл", &[name])
         } else {
             format!(
                 "{} › {name}",

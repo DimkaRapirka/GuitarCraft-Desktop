@@ -353,3 +353,172 @@ Delay и Reverb	Delay & reverb
 Неверный формат педали	Invalid pedal format
 Ошибка настроек	Settings error
 Педаль нельзя прослушать	This pedal cannot be auditioned
+кГц	kHz
+{}% от центра	{}% from center
+{}% (отн.)	{}% (relative)
+вплотную	At grille
+{} · {} · {}% от центра	{} · {} · {}% from center
+Оценка задержки вывода: ≈{} мс	Estimated output latency ≈{} ms
+буфер {} мс + устройство вывода {} мс. Измерено Rust-ядром через cpal. Задержка входа интерфейса (обычно 1–3 мс) сюда не входит	Buffer {} ms + output device {} ms. Measured by the audio engine. Input latency is additional.
+{} сэмплов · {} мс	{} samples · {} ms
+Последнее обращение агента: {}	Last agent request at {}
+Последнее сообщение: [{}] от {}	Last message [{}] from {}
+{} Гц · {} центов	{} Hz · {} cents
+Разметка ручек для «{}»	Position knobs on “{}”
+Оформление: {}	Skin changed to {}
+Фон выбран · {}	Background selected · {}
+{} (мой)	{} (custom)
+ручка {}	{} knob
+«{}» сохранена в каталог (Мои)	“{}” saved to My pedals
+Ошибка: {}	Error: {}
+Замена: {}	Replaced with {}
+Убрать MIDI ({})	Remove MIDI mapping ({})
+Аудио: {}	Audio: {}
+{} › вкл/выкл	{} › bypass
+Сейчас звучит: 	Auditioning:
+Цвет корпуса 	Enclosure color
+🎛 MIDI Learn: вкл/выкл	🎛 MIDI Learn: bypass
+MIDI Learn отменён: сообщений не было	MIDI Learn timed out without receiving a message.
+пресет не найден	preset not found
+не назначен	unassigned
+Ошибка GuitarCraft	GuitarCraft error
+Не удалось выполнить операцию	The operation could not be completed.
+Сохранение пресета	Save preset
+Собрана в конструкторе GuitarCraft	Built with GuitarCraft’s pedal builder
+мой звук	my sound
+Моя педаль	My pedal
+Педаль из конструктора DSP-блоков	Custom DSP pedal
+Усилитель, педали и кабинеты для электрогитары. DSP на Rust, 4× оверсэмплинг в перегрузах.	Amp, pedals and cabinets for electric guitar. Rust DSP with 4× oversampling in the drive stages.
+1) Опишите стиль и скопируйте промпт. 2) Сгенерируйте картинку в любом генераторе. 3) Импортируйте PNG: ручки встанут на пустую панель, их можно подвинуть.	Describe the amp face, copy the prompt into an image generator, then import the PNG and position the knobs.
+Опишите стиль: «чёрный тольекс, неоновая подсветка, киберпанк»	Describe the look, e.g. black vinyl with neon trim
+PNG импортирован. Ручки стоят поверх картинки, «Разметка ручек» позволяет их сдвинуть.	Image imported. Use the knob layout editor to position the controls.
+Промпт скопирован: вставьте его в генератор изображений	Prompt copied. Paste it into your image generator.
+ · свой	 · custom
+Встроенные педали	Built-in pedals
+DSP на Rust (crates/gc-dsp), аудиоустройства через cpal	Rust DSP with audio devices managed by cpal
+GuitarCraft DSP-блоки (.gcpedal.json)	GuitarCraft DSP pedals (.gcpedal.json)
+Педали из конструктора, обрабатываются Rust-ядром. Лежат в Документы/GuitarCraft/Pedals	Custom pedals run in the Rust engine and are stored in your GuitarCraft/Pedals documents folder.
+Расширения GuitarCraft (.gcext.js)	GuitarCraft extensions (.gcext.js)
+только поиск	Discovery only
+JS-модули работали в Web Audio. В Rust-ядре не исполняются; используйте педали из конструктора	The catalog can list legacy JavaScript extensions. Use the pedal builder to create effects for the Rust engine.
+Импульсы кабинета (IR) .wav / .flac / .mp3 / .ogg	Cabinet impulse responses (.wav / .flac / .mp3 / .ogg)
+Загружаются в блок кабинета	Load these files in the cabinet editor.
+Находятся при сканировании и видны в каталоге, но не обрабатывают звук: для этого нужен нативный хост (в планах)	Plug-in scanning lists these files in the catalog. Native plug-in playback is unavailable.
+70-е	70s
+8-бит	8-bit
+80-е	80s
+агрессивный	aggressive
+бас	bass
+биткрашер	bitcrusher
+британский	British
+буст	boost
+вау	wah
+вибрато	vibrato
+вибрато громкости	volume vibrato
+винтаж	vintage
+водяной	watery
+вращение	swirling
+выравнивает	leveling
+вязкий	thick
+гейт	gate
+германиевый	germanium
+гнусавый	nasal
+горб на середине	mid hump
+графический	graphic
+громкость	volume
+громче	louder
+грязный	gritty
+грязь	dirt
+детонация	wow and flutter
+дилей	delay
+динамичный	dynamic
+дисторшн	distortion
+длинный хвост	long decay
+для соло	lead
+дум	doom
+естественный	natural
+жирный	fat
+жёсткий	hard
+кантри	country
+капающий	dripping
+качающий	pumping
+квакающий	quacking
+классика	classic
+клин буст	clean boost
+колокольный	bell-like
+компрессор	compressor
+космос	space
+кранч	crunch
+кристальный	crystalline
+кружится	rotating
+ленточный	tape
+лоу-фай	lo-fi
+магнитофон	tape machine
+металл	metal
+металлический	metallic
+много гейна	high gain
+мягкий	soft
+нос	honk
+носовой	nasal tone
+огибающая	envelope
+огромный	huge
+октава вниз	octave down
+октавер	octaver
+открытый	open
+панк	punk
+педаль громкости	volume pedal
+перед усилителем	pre-amp
+переливы	shimmering
+плексы	plexi
+плотный	tight
+плывущий	drifting
+подкрасить усилитель	push the amp
+подрезать низ	low cut
+полуоткрытое вау	half-cocked wah
+прозрачный	transparent
+пространство	ambience
+пружинный	spring
+пульсирующий	pulsing
+радио	radio
+реагирует на атаку	pick-sensitive
+реактивный	responsive
+ревер	reverb
+ретро	retro
+ринг-модулятор	ring modulator
+ровный	even
+рок	rock
+самовозбуждение	self-oscillation
+самолёт	jet
+свист	squeal
+середина	midrange
+серф	surf
+синт	synth
+средний	mid-focused
+стаккато	staccato
+сустейн	sustain
+тишина	silence
+толстый	thick tone
+точный	precise
+тремоло	tremolo
+тёплый	warm
+уровень	level
+фазер	phaser
+фанк	funk
+флэнжер	flanger
+фузз	fuzz
+фэйзер	phaser
+холл	hall
+хорус	chorus
+цифровой	digital
+чистые паузы	quiet gaps
+чистые повторы	clean repeats
+чистый буст	clean boost
+шиммер	shimmer
+широкий	wide
+шумодав	noise gate
+эквалайзер	equalizer
+экспериментальный	experimental
+эмбиент	ambient
+эхо	echo
+яркий	bright
+яркость	brightness

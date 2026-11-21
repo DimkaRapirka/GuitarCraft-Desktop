@@ -175,7 +175,7 @@ pub async fn set_skin(app: JsValue, id: String) -> Result<JsValue, JsValue> {
         .unwrap_or_else(|| BUILTIN[0].clone());
     store::edit(
         &app,
-        &format!("Оформление: {}", text(&s, "name")),
+        &crate::i18n::message("Оформление: {}", &[text(&s, "name")]),
         None,
         |st| {
             let slot = slot(st);
@@ -595,7 +595,7 @@ async fn picker(app: JsValue, create: bool) -> Result<(), JsValue> {
                 &row,
                 "",
                 "",
-                &format!("Разметка ручек для «{}»", text(s, "name")),
+                &crate::i18n::message("Разметка ручек для «{}»", &[text(s, "name")]),
             );
             b.set_id("btn-edit-layout");
             on(&b, "click", &app, |a, _| {
