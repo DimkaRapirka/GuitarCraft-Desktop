@@ -69,7 +69,11 @@ impl State {
             JsValue::NULL
         };
         self.live_info.replace(live);
-        self.status.replace(status.clone());
+        let before = self.status.replace(status.clone());
+        let error = string(&status, "outputError");
+        if num(&status, "sr", 0.) > 0. && !error.is_empty() && error != string(&before, "outputError") {
+            crate::desktop::toast_error(&crate::i18n::message("Аудио: {}", &[crate::i18n::text(&error)]).into());
+        }
         Ok(status)
     }
     async fn configure(&self, patch: Value) -> Result<JsValue, JsValue> {
@@ -396,8 +400,8 @@ impl RustEngine {
         Ok(id)
     }
     #[wasm_bindgen(js_name=testTone)]
-    pub fn test_tone(&self) {
-        fire("engine_test_tone", json!({}));
+    pub async fn test_tone(&self) -> Result<(), JsValue> {
+        cmd("engine_test_tone", &json!({})).await.map(drop)
     }
     #[wasm_bindgen(js_name=setMetronome)]
     pub fn set_metronome(&self, on: bool, bpm: Option<f64>, level: Option<f64>) {

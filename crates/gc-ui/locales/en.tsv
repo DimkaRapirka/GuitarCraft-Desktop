@@ -547,3 +547,9 @@ MIDI Learn: «{}». Подвигайте регулятор на контрол�
 Позже	Later
 Установка обновления…	Installing update…
 Не удалось обновить GuitarCraft. Попробуйте ещё раз.	GuitarCraft could not update. Please try again.
+Активный выход	Active output
+{} · каналы {}	{} · channels {}
+Аудиовыход не открыт	Audio output is unavailable
+Для выхода используется размер буфера драйвера.	The output is using the driver’s buffer size.
+выход: нет устройства вывода	No audio output device is available
+выход: драйвер не начал передачу звука	The output driver did not start streaming audio

@@ -72,6 +72,13 @@ try {
     && process.env.GITHUB_ACTIONS === 'true'
     && (await dom('#set-output-device option[value="default"]'))?.text === 'Default'
     && !(await dom('#set-output-device option:not([value="default"])'));
+  const output = await call('engine.status');
+  const route = (await dom('#active-output')).text;
+  if (windowsRunnerWithoutAudio) {
+    assert.equal(route, 'No audio output device is available');
+  } else {
+    assert(output.output && route.startsWith(output.output));
+  }
   await call('ui.closeModals');
   assert((await dom('#btn-latency')).text.includes('kHz'));
   assert.equal((await call('engine.status')).diPlaying, false);

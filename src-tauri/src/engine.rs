@@ -18,7 +18,7 @@ use std::time::{Duration, Instant};
 fn f2u(v: f32) -> u32 { v.to_bits() }
 fn u2f(v: u32) -> f32 { f32::from_bits(v) }
 
-/// Lock-free state shared with the audio callback.
+/// State shared with the audio callback. The error lock is used only off the render path.
 #[derive(Default)]
 pub struct Shared {
     pub meter_raw: AtomicU32, pub meter_in: AtomicU32, pub meter_out: AtomicU32, pub gate_open: AtomicBool,
@@ -26,6 +26,7 @@ pub struct Shared {
     pub metro_on: AtomicBool, pub bpm: AtomicU32, pub metro_level: AtomicU32, pub test_tone: AtomicU32,
     pub recording: AtomicBool, pub out_latency_us: AtomicU32, pub underruns: AtomicU64,
     pub in_latency_us: AtomicU32, pub queued_frames: AtomicU32,
+    pub output_error: Mutex<Option<String>>,
 }
 
 /// Messages to the audio callback.
@@ -34,7 +35,7 @@ pub enum Cb { Rack(Msg), Di(Box<Vec<f32>>) }
 #[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct AudioConfig { pub mode: String, pub input: Option<String>, pub channel: u16, pub output: Option<String>, #[serde(default)] pub output_pair: u16, #[serde(default)] pub mono: bool, pub buffer: u32, pub sample_rate: Option<u32> }
 #[derive(Clone, Debug, Serialize, Default)]
-pub struct StreamInfo { pub sample_rate: u32, pub buffer: u32, pub output: String, pub input: Option<String>, pub in_channels: u16, pub channel: u16, pub out_channels: u16, pub sample_rates: Vec<u32> }
+pub struct StreamInfo { pub sample_rate: u32, pub buffer: u32, pub output: String, pub input: Option<String>, pub in_channels: u16, pub channel: u16, pub out_channels: u16, pub output_pair: u16, pub output_default_buffer: bool, pub sample_rates: Vec<u32> }
 
 enum AudioCmd { Configure(AudioConfig, Sender<Result<StreamInfo, String>>) }
 
@@ -203,6 +204,16 @@ impl Engine {
         let n = 12.0 * (f / a4).log2() + 69.0; let ni = n.round() as i32;
         json!({ "freq": (f * 10.0).round() / 10.0, "note": NOTES[ni.rem_euclid(12) as usize], "octave": ni.div_euclid(12) - 1, "cents": ((n - ni as f32) * 100.0).round() as i32 })
     }
+    pub fn test_tone(&self) -> Result<(), String> {
+        if let Some(error) = self.shared.output_error.lock().clone() {
+            return Err(error);
+        }
+        if self.info.lock().out_channels == 0 {
+            return Err("Аудиовыход не открыт".into());
+        }
+        self.shared.test_tone.fetch_add(1, Relaxed);
+        Ok(())
+    }
     pub fn meters(&self) -> Value {
         let s = &self.shared;
         json!({ "raw": u2f(s.meter_raw.load(Relaxed)), "input": u2f(s.meter_in.load(Relaxed)), "output": u2f(s.meter_out.load(Relaxed)), "gateOpen": s.gate_open.load(Relaxed) })
@@ -290,19 +301,44 @@ fn audio_thread(e: Arc<Engine>, rx: Receiver<AudioCmd>) {
         e.shared.out_latency_us.store(0, Relaxed);
         e.shared.queued_frames.store(0, Relaxed);
         *e.tx.lock() = None;
-        let result = open_streams(&e, &cfg, gtx.clone(), None);
+        let result = open_streams(&e, &cfg, gtx.clone(), None, false);
         #[cfg(windows)]
         let result = retry_wasapi_format(result, &e, &cfg, &gtx);
         let r = result.map(|(streams, info)| { active = Some(streams); info });
+        if let Err(error) = &r {
+            *e.shared.output_error.lock() = Some(error.clone());
+        }
         *e.info.lock() = r.as_ref().cloned().unwrap_or_default();
         let _ = reply.send(r);
     }
 }
 
-fn find_device(host: &cpal::Host, name: Option<&str>, input: bool) -> Option<cpal::Device> {
-    let list: Vec<cpal::Device> = if input { host.input_devices().ok()?.collect() } else { host.output_devices().ok()?.collect() };
-    if let Some(n) = name.filter(|n| *n != "default") { if let Some(d) = list.into_iter().find(|d| d.name().ok().as_deref() == Some(n)) { return Some(d); } }
-    if input { host.default_input_device() } else { host.default_output_device() }
+fn find_input_device(host: &cpal::Host, name: Option<&str>) -> Option<cpal::Device> {
+    if let Some(name) = name.filter(|name| *name != "default") {
+        if let Some(device) = host.input_devices().ok()?
+            .find(|device| device.name().ok().as_deref() == Some(name))
+        {
+            return Some(device);
+        }
+    }
+    host.default_input_device()
+}
+
+fn find_output_device(host: &cpal::Host, name: Option<&str>) -> Result<cpal::Device, String> {
+    if let Some(name) = name.filter(|name| *name != "default") {
+        return host.output_devices().map_err(|e| format!("выход: {e}"))?
+            .find(|device| device.name().ok().as_deref() == Some(name))
+            .ok_or_else(|| format!("выход: устройство недоступно — {name}"));
+    }
+    host.default_output_device().ok_or_else(|| "выход: нет устройства вывода".into())
+}
+
+#[cfg(any(windows, test))]
+const OUTPUT_START_TIMEOUT: &str = "выход: драйвер не начал передачу звука";
+
+#[cfg(any(windows, test))]
+fn await_output(startup: Receiver<Result<(), String>>, timeout: Duration) -> Result<(), String> {
+    startup.recv_timeout(timeout).map_err(|_| OUTPUT_START_TIMEOUT.to_owned())?
 }
 
 #[cfg(windows)]
@@ -312,19 +348,24 @@ fn retry_wasapi_format(
     config: &AudioConfig,
     garbage: &Sender<Garbage>,
 ) -> Result<(ActiveStreams, StreamInfo), String> {
-    let rejected_output = |reason: &String| {
+    let unsupported = |reason: &String| {
         let reason = reason.to_ascii_lowercase();
         reason.starts_with("выход:") && (reason.contains("0x88890008")
             || reason.contains("stream configuration is not supported"))
     };
-    let mut native = config.clone();
-    native.sample_rate = None;
-    if config.sample_rate.is_some() && result.as_ref().is_err_and(rejected_output) {
-        result = open_streams(engine, &native, garbage.clone(), None);
+    let retry = |reason: &String| reason == OUTPUT_START_TIMEOUT || unsupported(reason);
+    let native = AudioConfig { sample_rate: None, ..config.clone() };
+    if config.sample_rate.is_some() && result.as_ref().is_err_and(retry) {
+        result = open_streams(engine, &native, garbage.clone(), None, false);
     }
-    if result.as_ref().is_err_and(rejected_output) {
+    if result.as_ref().is_err_and(retry) {
+        // The native device period is a compatibility fallback for drivers that
+        // accept a requested buffer yet never deliver an audio callback.
+        result = open_streams(engine, &native, garbage.clone(), None, true);
+    }
+    if result.as_ref().is_err_and(unsupported) {
         // Some USB drivers reject float during Initialize despite advertising it.
-        result = open_streams(engine, &native, garbage.clone(), Some(SampleFormat::I16));
+        result = open_streams(engine, &native, garbage.clone(), Some(SampleFormat::I16), true);
     }
     result
 }
@@ -404,10 +445,12 @@ fn open_streams(
     cfg: &AudioConfig,
     gtx: Sender<Garbage>,
     output_format: Option<SampleFormat>,
+    use_device_buffer: bool,
 ) -> Result<(ActiveStreams, StreamInfo), String> {
+    *e.shared.output_error.lock() = None;
     let host = cpal::default_host();
-    let out_dev = find_device(&host, cfg.output.as_deref(), false).ok_or("нет устройства вывода")?;
-    let def = out_dev.default_output_config().map_err(|e| e.to_string())?;
+    let out_dev = find_output_device(&host, cfg.output.as_deref())?;
+    let def = out_dev.default_output_config().map_err(|e| format!("выход: {e}"))?;
     let format = output_format.unwrap_or(def.sample_format());
     let mut rates = vec![def.sample_rate().0];
     if let Ok(configs) = out_dev.supported_output_configs() {
@@ -424,7 +467,11 @@ fn open_streams(
     let sr = cfg.sample_rate.filter(|r| rates.contains(r)).unwrap_or(def.sample_rate().0);
     let out_ch = def.channels();
     let buffer = cfg.buffer.clamp(32, 4096);
-    let out_cfg = cpal::StreamConfig { channels: out_ch, sample_rate: cpal::SampleRate(sr), buffer_size: cpal::BufferSize::Fixed(buffer) };
+    let out_cfg = cpal::StreamConfig {
+        channels: out_ch,
+        sample_rate: cpal::SampleRate(sr),
+        buffer_size: if use_device_buffer { cpal::BufferSize::Default } else { cpal::BufferSize::Fixed(buffer) },
+    };
 
     // input (live guitar)
     let live = cfg.mode == "live";
@@ -445,13 +492,20 @@ fn open_streams(
     let (mut rprod, mut rcons) = rtrb::RingBuffer::<f32>::new(1 << 18);
     let mut di: Box<Vec<f32>> = Box::new(vec![]); let mut di_pos = 0usize;
     let (mut inp, mut l, mut r) = (vec![0f32; 4096], vec![0f32; 4096], vec![0f32; 4096]);
-    let mut metro_n: u64 = 0; let mut tone_seen = 0u32; let mut tone_left = 0usize; let mut tone_ph = 0f32;
+    let mut metro_n: u64 = 0; let mut tone_seen = shared.test_tone.load(Relaxed); let mut tone_left = 0usize; let mut tone_ph = 0f32;
     let srf = sr as f32;
     let mut trash = move |g: Garbage| { let _ = gtx.try_send(g); };
     let nch = out_ch as usize;
     let pair_start = (cfg.output_pair as usize * 2).min(nch.saturating_sub(1) / 2 * 2);
     let mono = cfg.mono || pair_start + 1 == nch;
     let output_capture_frames = capture_frames.clone();
+    let output_errors = e.shared.clone();
+    #[cfg(windows)]
+    let (output_started, startup) = bounded(1);
+    #[cfg(windows)]
+    let output_start_errors = output_started.clone();
+    #[cfg(windows)]
+    let mut output_started = Some(output_started);
     let out_stream = out_dev.build_output_stream_raw(&out_cfg, format, move |data, info| {
         while let Ok(m) = rx.try_recv() {
             match m { Cb::Rack(m) => rack.handle(m, &mut trash), Cb::Di(d) => { let old = std::mem::replace(&mut di, d); trash(Garbage::Samples(old)); di_pos = 0; } }
@@ -502,17 +556,32 @@ fn open_streams(
             done += n;
         }
         shared.meter_raw.store(f2u(mr), Relaxed); shared.meter_in.store(f2u(mi), Relaxed); shared.meter_out.store(f2u(mo), Relaxed); shared.gate_open.store(rack.meters.gate_open, Relaxed);
-    }, |err| eprintln!("[gc] output stream error: {err}"), None).map_err(|e| format!("выход: {e}"))?;
+        #[cfg(windows)]
+        if frames > 0 {
+            if let Some(started) = output_started.take() {
+                let _ = started.try_send(Ok(()));
+            }
+        }
+    }, move |err| {
+        let message = format!("выход: {err}");
+        eprintln!("[gc] {message}");
+        #[cfg(windows)]
+        let _ = output_start_errors.try_send(Err(message.clone()));
+        *output_errors.output_error.lock() = Some(message);
+    }, None).map_err(|e| format!("выход: {e}"))?;
     // Opening the output can set the hardware sample rate of a duplex interface.
     // Query the input afterward so its resampler and tuner see the current rate.
+    out_stream.play().map_err(|e| format!("выход: {e}"))?;
+    #[cfg(windows)]
+    await_output(startup, Duration::from_millis(900))?;
     let mut streams = vec![out_stream];
     let mut in_name = None;
     let mut in_ch = 0;
     let mut channel = cfg.channel;
     let mut tuner_rate = sr;
     if live {
-        let in_dev = find_device(&host, cfg.input.as_deref(), true).ok_or("нет устройства входа")?;
-        let icfg = in_dev.default_input_config().map_err(|e| e.to_string())?;
+        let in_dev = find_input_device(&host, cfg.input.as_deref()).ok_or("вход: нет устройства входа")?;
+        let icfg = in_dev.default_input_config().map_err(|e| format!("вход: {e}"))?;
         in_ch = icfg.channels(); channel = channel.min(in_ch.saturating_sub(1));
         let in_sr = icfg.sample_rate().0;
         tuner_rate = in_sr;
@@ -538,11 +607,8 @@ fn open_streams(
                     });
                 });
             }, |err| eprintln!("[gc] input stream error: {err}"), None).map_err(|e| format!("вход: {e}"))?;
+        s.play().map_err(|e| format!("вход: {e}"))?;
         streams.push(s);
-    }
-
-    for stream in &streams {
-        stream.play().map_err(|e| e.to_string())?;
     }
     *e.tx.lock() = Some(tx);
     e.shared.live.store(live, Relaxed);
@@ -590,7 +656,11 @@ fn open_streams(
         std::thread::sleep(Duration::from_millis(15));
     }).unwrap();
 
-    let info = StreamInfo { sample_rate: sr, buffer, output: out_dev.name().unwrap_or_default(), input: in_name, in_channels: in_ch, channel, out_channels: out_ch, sample_rates: rates };
+    let info = StreamInfo {
+        sample_rate: sr, buffer, output: out_dev.name().unwrap_or_default(), input: in_name,
+        in_channels: in_ch, channel, out_channels: out_ch, output_pair: (pair_start / 2) as u16,
+        output_default_buffer: use_device_buffer, sample_rates: rates,
+    };
     Ok((ActiveStreams { streams, analysis_worker }, info))
 }
 
@@ -614,6 +684,16 @@ mod tests {
         assert_eq!(trim_live_queue(&mut consumer, 256, 256), 64);
         assert_eq!(consumer.slots(), 320);
         assert_eq!(consumer.pop().unwrap(), 704.0);
+    }
+
+    #[test]
+    fn output_start_reports_silent_and_failed_drivers() {
+        let (tx, rx) = bounded(1);
+        assert_eq!(await_output(rx.clone(), Duration::ZERO), Err(OUTPUT_START_TIMEOUT.into()));
+        tx.send(Err("device error".into())).unwrap();
+        assert_eq!(await_output(rx.clone(), Duration::ZERO), Err("device error".into()));
+        tx.send(Ok(())).unwrap();
+        assert_eq!(await_output(rx, Duration::ZERO), Ok(()));
     }
 
     #[test]

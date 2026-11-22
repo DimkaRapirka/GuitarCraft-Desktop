@@ -384,7 +384,24 @@ impl Panel {
             devices("outputs", "defaultOutput"),
             s["outputDevice"].as_str().unwrap_or("default"),
         );
-        let ch = i(&status, "outChannels", 2).max(1);
+        let active_output = text(&status, "output");
+        let fault = text(&status, "outputError");
+        let out_channels = i(&status, "outChannels", 0);
+        let route = if fault.is_empty() && out_channels > 0 {
+            let first = i(&status, "outputPair", 0) * 2 + 1;
+            let channels = if first < out_channels {
+                format!("{first} / {}", first + 1)
+            } else {
+                first.to_string()
+            };
+            crate::i18n::message("{} · каналы {}", &[active_output, &channels])
+        } else if fault.is_empty() {
+            crate::i18n::text("Аудиовыход не открыт").into()
+        } else {
+            fault.to_owned()
+        };
+        child(&row(p, "Активный выход", ""), "span", "mono", &route).set_id("active-output");
+        let ch = out_channels.max(1);
         select(
             &row(p, "Каналы выхода", ""),
             "outputPair",
@@ -401,7 +418,7 @@ impl Panel {
                     )
                 })
                 .collect(),
-            &i(s, "outputPair", 0).to_string(),
+            &i(&status, "outputPair", i(s, "outputPair", 0)).to_string(),
         );
         select(
             &row(p, "Режим выхода", ""),
@@ -451,7 +468,11 @@ impl Panel {
             &row(
                 p,
                 "Размер буфера",
-                "Фактический буфер зависит от драйвера. Если слышны щелчки, увеличьте размер.",
+                if status["outputDefaultBuffer"] == true {
+                    "Для выхода используется размер буфера драйвера."
+                } else {
+                    "Фактический буфер зависит от драйвера. Если слышны щелчки, увеличьте размер."
+                },
             ),
             "bufferSize",
             "set-buffer",
@@ -759,7 +780,15 @@ impl Panel {
             match b.get_attribute("data-cmd").as_deref() {
                 Some("close") => close_settings(),
                 Some("tone") => {
-                    invoke(&engine, "testTone", &[])?;
+                    if let Err(error) = call(&engine, "testTone", &[]).await {
+                        let message = get(&error, "message").as_string().or_else(|| error.as_string());
+                        if let Some(message) = message {
+                            self.toast(&crate::i18n::message("Аудио: {}", &[crate::i18n::text(&message)]));
+                        } else {
+                            return Err(error);
+                        }
+                        self.go("audio");
+                    }
                 }
                 Some("background-import") => {
                     let scene = b.get_attribute("data-scene").unwrap_or_default();

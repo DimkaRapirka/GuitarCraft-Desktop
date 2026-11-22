@@ -104,9 +104,11 @@ fn catalog_discover(s: S, source: String) -> R<Vec<Value>> {
     let out_ms = e.shared.out_latency_us.load(Relaxed) as f32 / 1000.0;
     let capture_ms = e.shared.in_latency_us.load(Relaxed) as f32 / 1000.0;
     let queue_ms = e.shared.queued_frames.load(Relaxed) as f32 / i.sample_rate.max(1) as f32 * 1000.0;
+    let output_error = e.shared.output_error.lock().clone();
     json!({ "engine": "rust", "sr": i.sample_rate, "buffer": i.buffer,
         "base_ms": capture_ms + queue_ms, "capture_ms": capture_ms, "queue_ms": queue_ms, "out_ms": out_ms,
         "output": i.output, "input": i.input, "outChannels": i.out_channels, "inChannels": i.in_channels, "channel": i.channel, "sampleRates": i.sample_rates,
+        "outputPair": i.output_pair, "outputError": output_error, "outputDefaultBuffer": i.output_default_buffer,
         "live": e.shared.live.load(Relaxed), "di": *e.di_name.lock(), "diPlaying": e.shared.di_playing.load(Relaxed), "meters": e.meters() })
 }
 #[tauri::command] fn engine_di_bytes(s: S, request: tauri::ipc::Request) -> R<Value> {
@@ -125,7 +127,7 @@ fn percent_decode(s: &str) -> String {
     s.engine.load_di(d, sr, &name); Ok(json!({ "name": name }))
 }
 #[tauri::command] fn engine_di_play(s: S, on: bool) { use std::sync::atomic::Ordering::Relaxed; if on && !s.engine.shared.di_playing.load(Relaxed) { s.engine.shared.di_restart.store(true, Relaxed); } s.engine.shared.di_playing.store(on, Relaxed); }
-#[tauri::command] fn engine_test_tone(s: S) { s.engine.shared.test_tone.fetch_add(1, std::sync::atomic::Ordering::Relaxed); }
+#[tauri::command] fn engine_test_tone(s: S) -> R<()> { s.engine.test_tone() }
 #[tauri::command] fn engine_metronome(s: S, on: bool, bpm: f32, level: f32) {
     use std::sync::atomic::Ordering::Relaxed; let sh = &s.engine.shared;
     sh.bpm.store(bpm.to_bits(), Relaxed); sh.metro_level.store(level.to_bits(), Relaxed); sh.metro_on.store(on, Relaxed);
