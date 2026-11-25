@@ -1264,7 +1264,7 @@ dependencies = [
 
 [[package]]
 name = "gc-dsp"
-version = "0.11.2"
+version = "0.12.0"
 dependencies = [
  "hound",
  "realfft",
@@ -1273,7 +1273,7 @@ dependencies = [
 
 [[package]]
 name = "gc-mcp"
-version = "0.11.2"
+version = "0.12.0"
 dependencies = [
  "dirs 5.0.1",
  "serde_json",
@@ -1281,7 +1281,7 @@ dependencies = [
 
 [[package]]
 name = "gc-model"
-version = "0.11.2"
+version = "0.12.0"
 dependencies = [
  "serde_json",
  "web-time",
@@ -1289,7 +1289,7 @@ dependencies = [
 
 [[package]]
 name = "gc-ui"
-version = "0.11.2"
+version = "0.12.0"
 dependencies = [
  "gc-model",
  "js-sys",
@@ -1617,7 +1617,7 @@ dependencies = [
 
 [[package]]
 name = "guitarcraft"
-version = "0.11.2"
+version = "0.12.0"
 dependencies = [
  "arboard",
  "cpal",
