@@ -279,6 +279,17 @@ impl Panel {
             _ => {
                 child(p, "h3", "", "GuitarCraft");
                 child(p,"p","muted","Усилитель, педали и кабинеты для электрогитары. DSP на Rust, 4× оверсэмплинг в перегрузах.");
+                let info: Value = read(command("app_info", &JsValue::UNDEFINED).await?)?;
+                let version = info["version"].as_str().unwrap_or_default();
+                child(p, "h3", "", "Обновления");
+                let r = row(
+                    p,
+                    &crate::i18n::message("Версия {}", &[version]),
+                    "Приложение проверяет обновления при запуске",
+                );
+                let b = button(&r, "check-update", "btn-check-update", "Проверить обновления", false);
+                attr(&b, "data-version", version);
+                child(p, "p", "muted small", "").set_id("update-status");
             }
         }
         Ok(())
@@ -813,6 +824,19 @@ impl Panel {
                     call(&cat, "loadExtensions", &[]).await?;
                     call(&cat, "loadUserPedals", &[]).await?;
                     self.toast("Расширения перезагружены");
+                }
+                Some("check-update") => {
+                    let status = self.body.query_selector("#update-status")?;
+                    let current = b.get_attribute("data-version").unwrap_or_default();
+                    set(&b, "disabled", &true.into());
+                    if let Some(s) = &status {
+                        s.set_text_content(Some(crate::i18n::text("Проверяем…")));
+                    }
+                    let answer = crate::updates::check_now(&current).await;
+                    set(&b, "disabled", &false.into());
+                    if let Some(s) = status {
+                        s.set_text_content(Some(&answer));
+                    }
                 }
                 Some("copy") => {
                     if let Some(area) = self.body.query_selector("textarea")? {

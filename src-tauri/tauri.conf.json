@@ -54,7 +54,8 @@
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEJBRkE3NkY5MDBEQjNFQ0UKUldUT1B0c0ErWGI2dW8rdGNFTm1DWXZpdG02QWhnWHZnTDdodXE0eDNZZnY4NUkzOWY3QlpVcGEK",
       "endpoints": [
-        "https://github.com/DimkaRapirka/GuitarCraft-Desktop/releases/latest/download/latest.json"
+        "https://github.com/DimkaRapirka/GuitarCraft-Desktop/releases/latest/download/latest.json",
+        "https://guitarcraft.netlify.app/latest.json"
       ],
       "requireSignedVersion": true,
       "windows": {

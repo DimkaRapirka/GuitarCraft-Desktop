@@ -28,6 +28,17 @@
   [headers.values]
     Cache-Control = "public, max-age=300, must-revalidate"
 
+# Release data written by .github/workflows/site-release.yml: always revalidate.
+[[headers]]
+  for = "/release.json"
+  [headers.values]
+    Cache-Control = "no-cache"
+[[headers]]
+  for = "/latest.json"
+  [headers.values]
+    Cache-Control = "no-cache"
+    Access-Control-Allow-Origin = "*"
+
 # Short links that always point at the newest installer on GitHub.
 [[redirects]]
   from = "/download"

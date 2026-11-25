@@ -164,18 +164,30 @@
   }
   const mine = detectOS();
   let release = FALLBACK;
-  async function fetchRelease() {
+  const ver = (r) => String((r && r.tag_name) || '').replace(/^v/, '').split('.').map((n) => parseInt(n, 10) || 0);
+  const newer = (a, b) => { const x = ver(a), y = ver(b); for (let i = 0; i < 3; i++) { if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0); } return false; };
+  const newest = (...list) => list.filter((r) => r && r.tag_name).reduce((best, r) => (!best || newer(r, best) ? r : best), null);
+  const getJSON = async (url, ms) => {
+    const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), ms);
     try {
-      const c = JSON.parse(store.get('gc.release.v1') || 'null');
-      if (c && Date.now() - c.at < 10 * 60 * 1000) return c.release;
-    } catch (e) { /* ignore */ }
-    try {
-      const r = await fetch(API, { headers: { Accept: 'application/vnd.github+json' } });
+      const r = await fetch(url, { cache: 'no-cache', signal: ctl.signal, headers: { Accept: 'application/json' } });
       if (!r.ok) throw new Error(String(r.status));
-      const rel = await r.json();
-      store.set('gc.release.v1', JSON.stringify({ at: Date.now(), release: rel }));
-      return rel;
-    } catch (e) { return FALLBACK; }
+      return await r.json();
+    } finally { clearTimeout(timer); }
+  };
+  /* The page's own release.json is written by a workflow on every release and is served
+     from the same host, so it does not depend on the GitHub API (rate limits, blocked ranges).
+     The API is only a second opinion; the newest answer wins and a stale cache never beats it. */
+  function cached() {
+    try { const c = JSON.parse(store.get('gc.release.v2') || 'null'); return c && Date.now() - c.at < 6 * 3600 * 1000 ? c.release : null; } catch (e) { return null; }
+  }
+  async function fetchRelease() {
+    const stale = newest(cached(), FALLBACK);
+    const sources = [getJSON('release.json', 6000), getJSON(API, 6000)];
+    const results = await Promise.all(sources.map((p) => p.catch(() => null)));
+    const fresh = newest(...results);
+    if (fresh) store.set('gc.release.v2', JSON.stringify({ at: Date.now(), release: fresh }));
+    return fresh ? newest(fresh, stale) : stale;
   }
   const mb = (n) => (n ? Math.round(n / 1048576) + (lang === 'ru' ? ' МБ' : ' MB') : '');
   function asset(os) {
@@ -391,6 +403,7 @@
 
   /* ------------------------------------------------------------------ start */
   function start() {
+    release = newest(cached(), FALLBACK);
     translate(); renderWorkshop(); applyRelease();
     fetchRelease().then((r) => { release = r; applyRelease(); });
     document.querySelectorAll('[data-lang]').forEach((b) => b.addEventListener('click', () => {

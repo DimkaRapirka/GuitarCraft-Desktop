@@ -697,3 +697,21 @@ PNG, JPG или WebP: он напечатается на корпусе	PNG, JPG
 Промпт для генератора картинок: вставьте его в ChatGPT, Midjourney или другой	Prompt for an image generator: paste it into ChatGPT, Midjourney or another
 Промпт скопирован: сгенерируйте картинку и загрузите её сюда	Prompt copied: generate a picture and load it here
 ваш стиль: цвета, материалы, эпоха	your style: colours, materials, era
+Загрузка обновления	Downloading the update
+Подготовка…	Preparing…
+{} из {} МБ · {}%	{} of {} MB · {}%
+МБ/с	MB/s
+МБ	MB
+Загрузка	Download
+Установка	Install
+Перезапуск	Restart
+Перезапуск…	Restarting…
+Установщик запущен. GuitarCraft закроется и откроется снова сам.	The installer is running. GuitarCraft will close and reopen by itself.
+Повторить	Retry
+Обновления	Updates
+Версия {}	Version {}
+Приложение проверяет обновления при запуске	The app checks for updates when it starts
+Проверить обновления	Check for updates
+Проверяем…	Checking…
+Установлена последняя версия ({})	You have the latest version ({})
+Не удалось проверить обновления: {}	Could not check for updates: {}
