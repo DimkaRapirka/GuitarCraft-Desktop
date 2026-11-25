@@ -1,0 +1,39 @@
+# Static site: no build step. In Netlify set "Base directory" to `site`.
+# The site is skipped when a push does not touch this folder (app commits do not redeploy it).
+[build]
+  publish = "."
+  command = ""
+  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- ."
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Frame-Options = "DENY"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+
+[[headers]]
+  for = "/*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=300, must-revalidate"
+
+[[headers]]
+  for = "/*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=300, must-revalidate"
+
+# Short links that always point at the newest installer on GitHub.
+[[redirects]]
+  from = "/download"
+  to = "https://github.com/DimkaRapirka/GuitarCraft-Desktop/releases/latest"
+  status = 302
+[[redirects]]
+  from = "/github"
+  to = "https://github.com/DimkaRapirka/GuitarCraft-Desktop"
+  status = 302
