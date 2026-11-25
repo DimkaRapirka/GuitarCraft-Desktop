@@ -382,11 +382,9 @@
     const name = el.querySelector('.name');
     'GuitarCraft'.split('').forEach((ch, i) => { const s = document.createElement('span'); s.style.setProperty('--i', i); s.innerHTML = i >= 6 ? '<i>' + ch + '</i>' : ch; name.appendChild(s); });
     const strings = new Strings(el.querySelector('canvas'), { top: .3, bottom: .7, alpha: .75 });
-    /* A quick strum, then every string is struck hard when the logo starts to appear and again as it lands. */
-    const hit = (amp) => { for (let i = 0; i < 6; i++) strings.pluck(i, .15 + Math.random() * .7, amp); };
+    /* One quick strum across all six strings; the logo appears with it. */
     const timers = [];
-    for (let k = 0; k < 6; k++) timers.push(setTimeout(() => strings.pluck(k, .2 + Math.random() * .6, 30), 80 + k * 40));
-    timers.push(setTimeout(() => hit(46), 520), setTimeout(() => hit(46), 1000));
+    for (let k = 0; k < 6; k++) timers.push(setTimeout(() => strings.pluck(k, .2 + Math.random() * .6, 42), 30 + k * 45));
     root.classList.add('intro-on');
     requestAnimationFrame(() => requestAnimationFrame(() => root.classList.add('play')));
     let done = false;
@@ -394,11 +392,11 @@
       if (done) return; done = true; timers.forEach(clearTimeout);
       try { sessionStorage.setItem('gc.intro', '1'); } catch (e) { /* ignore */ }
       root.classList.add('done');
-      setTimeout(() => { strings.alive = false; el.remove(); root.classList.remove('intro-on', 'play'); root.classList.add('ready'); }, 750);
+      setTimeout(() => { strings.alive = false; el.remove(); root.classList.remove('intro-on', 'play'); root.classList.add('ready'); }, 500);
     };
     el.querySelector('[data-skip]').addEventListener('click', finish);
     addEventListener('keydown', (e) => { if (e.key === 'Escape' || e.key === 'Enter') finish(); }, { once: true });
-    setTimeout(finish, 2500);
+    setTimeout(finish, 1500);
   }
 
   /* ------------------------------------------------------------------ start */

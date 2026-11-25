@@ -192,16 +192,16 @@ footer .row .grow { flex: 1; }
 
 /* ---------- opening: strings plucked, the name rings out ---------- */
 .intro-on body { overflow: hidden; }
-#intro { position: fixed; inset: 0; z-index: 100; background: #050608; display: grid; place-items: center; transition: opacity .7s, filter .7s; }
+#intro { position: fixed; inset: 0; z-index: 100; background: #050608; display: grid; place-items: center; transition: opacity .45s, filter .45s; }
 .done #intro { opacity: 0; filter: blur(12px); }
 #intro canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 #intro .name { position: relative; z-index: 2; font: 400 clamp(54px, 11vw, 170px)/1 var(--serif); letter-spacing: -.02em; display: flex; }
 #intro .name span { display: inline-block; opacity: 0; transform: translateY(18px) scale(1.06); filter: blur(10px); }
-.play #intro .name span { animation: letter .75s forwards cubic-bezier(.2, .7, .2, 1); animation-delay: calc(.5s + var(--i) * .05s); }
+.play #intro .name span { animation: letter .5s forwards cubic-bezier(.2, .7, .2, 1); animation-delay: calc(.05s + var(--i) * .03s); }
 @keyframes letter { to { opacity: 1; transform: none; filter: none; } }
 #intro .name i { font-style: italic; color: var(--ice); }
 #intro .sub { position: absolute; z-index: 2; top: calc(50% + clamp(50px, 7vw, 110px)); font: 400 11px/1 var(--mono); letter-spacing: .34em; color: var(--mute); text-transform: uppercase; opacity: 0; text-align: center; padding: 0 20px; }
-.play #intro .sub { animation: fade .6s 1.25s forwards; }
+.play #intro .sub { animation: fade .4s .4s forwards; }
 @keyframes fade { to { opacity: 1; } }
 #intro .skip { position: absolute; right: 26px; bottom: 24px; z-index: 3; font: 400 11px/1 var(--mono); letter-spacing: .2em; text-transform: uppercase; color: var(--mute); background: none; border: 0; border-bottom: 1px solid #ffffff33; padding: 6px 0; cursor: pointer; }
 #intro .skip:hover { color: var(--text); }
