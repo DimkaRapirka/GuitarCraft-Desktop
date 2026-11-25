@@ -84,6 +84,9 @@ async fn all() -> Result<Vec<Value>, JsValue> {
             };
             s["user"] = json!(true);
             s["file"] = json!(f);
+            if s["design"].is_object() {
+                crate::combo::remember(text(&s, "id"), &s["design"]);
+            }
             users.push(s);
         }
         if GENERATION.with(Cell::get) == epoch {
@@ -112,6 +115,9 @@ pub(crate) fn active(s: &Value) -> &str {
     }
 }
 fn image(s: &Value) -> Result<String, JsValue> {
+    if s["design"].is_object() {
+        return crate::combo::image(&s["design"]);
+    }
     if s["user"] == true {
         Ok(invoke(
             &get(&get(&web_sys::window().unwrap(), "__TAURI__"), "core"),
@@ -124,7 +130,7 @@ fn image(s: &Value) -> Result<String, JsValue> {
         Ok(text(s, "image").to_owned())
     }
 }
-fn layout(s: &Value) -> Value {
+pub(crate) fn layout(s: &Value) -> Value {
     let p = &s["panel"];
     let x0 = p["x0"].as_f64().unwrap_or(0.08);
     let x1 = p["x1"].as_f64().unwrap_or(0.92);
@@ -146,7 +152,7 @@ fn layout(s: &Value) -> Value {
     }
     lay
 }
-fn place(el: &Element, p: &Value) {
+pub(crate) fn place(el: &Element, p: &Value) {
     style(
         el,
         "left",
@@ -199,9 +205,10 @@ fn controls(
     lay: &Rc<RefCell<Value>>,
     ch: &str,
     edit: bool,
+    fixed: f64,
 ) -> Result<(), JsValue> {
     ctl.set_text_content(None);
-    let width = frame.client_width().max(1) as f64;
+    let width = if fixed > 0. { fixed } else { frame.client_width().max(1) as f64 };
     let size = (width * skin["knob"].as_f64().unwrap_or(0.05)).round();
     let positions = lay.borrow().clone();
     for (id, pos) in positions.as_object().unwrap() {
@@ -269,8 +276,33 @@ fn controls(
     }
     Ok(())
 }
+/// The current amp front at a fixed width with working knobs and channel buttons (whole-chain view).
+pub(crate) async fn render_mini(app: JsValue, wrap: Element, width: f64) -> Result<(), JsValue> {
+    let all = all().await?;
+    crate::combo::preload().await;
+    let state = store::state(&app)?;
+    let s = all
+        .into_iter()
+        .find(|s| s["id"] == active(&state))
+        .unwrap_or_else(|| BUILTIN[0].clone());
+    let ch = text(&state["amp"], "channel").to_owned();
+    wrap.set_text_content(None);
+    let frame = child(&wrap, "div", "skin-frame mini", "");
+    style(&frame, "width", &format!("{width}px"));
+    for k in ["text", "ring", "pointer"] {
+        style(&frame, &format!("--skin-{k}"), text(&s, k));
+    }
+    let img = child(&frame, "img", "", "");
+    attr(&img, "src", &image(&s)?);
+    attr(&img, "alt", text(&s, "name"));
+    attr(&img, "draggable", "false");
+    let ctl = child(&frame, "div", "skin-controls", "");
+    let lay = Rc::new(RefCell::new(layout(&s)));
+    controls(&app, &frame, &ctl, &s, &lay, &ch, false, width)
+}
 pub async fn render(app: JsValue, wrap: Element) -> Result<(), JsValue> {
     let all = all().await?;
+    crate::combo::preload().await;
     if !wrap.is_connected() {
         return Ok(());
     }
@@ -301,7 +333,7 @@ pub async fn render(app: JsValue, wrap: Element) -> Result<(), JsValue> {
     let update = Closure::<dyn FnMut()>::new(move || {
         let w = frame.client_width();
         if w > 0 && last.replace(w) != w {
-            report(controls(&a, &frame, &ctl, &skin, &lay, &channel, edit));
+            report(controls(&a, &frame, &ctl, &skin, &lay, &channel, edit, 0.));
         }
     });
     let observer = ResizeObserver::new(update.as_ref().unchecked_ref())?;
@@ -415,6 +447,31 @@ pub async fn import_skin(app: JsValue, file: String, opts: JsValue) -> Result<Js
     invoke(&app,"toast",&["PNG импортирован. Ручки стоят поверх картинки, «Разметка ручек» позволяет их сдвинуть.".into()])?;
     js(&json!({"skin":id,"file":dest}))
 }
+/// Save a combo from the designer as a user skin (new, or over `id`) and switch to it.
+pub(crate) async fn save_design(app: JsValue, design: Value, id: Option<String>) -> Result<(), JsValue> {
+    let name = design["name"]
+        .as_str()
+        .map(str::trim)
+        .filter(|n| !n.is_empty())
+        .unwrap_or("Мой комбик")
+        .to_owned();
+    let id = id.unwrap_or_else(|| format!("user-{}", gc_model::new_uid()));
+    let skin = crate::combo::skin(&design, &id, &name);
+    crate::combo::remember(&id, &design);
+    command(
+        "write_json",
+        &js(&json!({"kind":"skins","name":format!("{id}.gcskin.json"),"data":skin}))?,
+    )
+    .await?;
+    GENERATION.with(|g| g.set(g.get().wrapping_add(1)));
+    USERS.with(|s| s.take());
+    close_picker();
+    set_skin(app.clone(), id).await?;
+    invoke(&app, "toast", &[crate::i18n::message("Комбик «{}» сохранён", &[&name]).into()]).map(drop)
+}
+pub(crate) async fn open_picker(app: JsValue) -> Result<(), JsValue> {
+    picker(app, false).await
+}
 fn close_picker() {
     if let Ok(Some(el)) = doc().query_selector(".skins-bg") {
         el.remove();
@@ -424,7 +481,7 @@ fn prompt(style: &str) -> String {
     include_str!("skin-prompt.txt").trim_end().replace(
         "{style}",
         if style.trim().is_empty() {
-            "ваш стиль: цвета, материалы, эпоха"
+            crate::i18n::text("ваш стиль: цвета, материалы, эпоха")
         } else {
             style.trim()
         },
@@ -582,6 +639,7 @@ async fn picker(app: JsValue, create: bool) -> Result<(), JsValue> {
         }
         let row = child(&content, "div", "row", "");
         style(&row, "margin-top", "14px");
+        // The combo designer (crate::combo) is kept for later; for now skins come from your own picture.
         let create = button(&row, "primary", "", "＋ Создать своё оформление…");
         create.set_id("btn-create-skin");
         on(&create, "click", &app, |a, e| {

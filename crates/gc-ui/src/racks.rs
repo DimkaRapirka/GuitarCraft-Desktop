@@ -111,6 +111,17 @@ fn controls(
     params: &[Value],
     model: &Value,
 ) -> Result<(), JsValue> {
+    controls_sized(parent, app, kind, params, model, 58.)
+}
+/// Knobs of a rack (`gate`, `eq`, `delay`, `reverb`) at a given knob size.
+pub(crate) fn controls_sized(
+    parent: &Element,
+    app: &JsValue,
+    kind: &'static str,
+    params: &[Value],
+    model: &Value,
+    size: f64,
+) -> Result<(), JsValue> {
     for def in params {
         let mut p = def.clone();
         let key = text(def, "id").to_owned();
@@ -153,7 +164,7 @@ fn controls(
         } else {
             format!("{}: {name}", kind.to_uppercase())
         };
-        let k = knob_for(p, v, &id, 58., "hw", move |v| {
+        let k = knob_for(p, v, &id, size, "hw", move |v| {
             store::edit(&a, &name, Some(&group), |s| {
                 if kind == "gate" {
                     s["input"]["gate"][&key] = json!(v)

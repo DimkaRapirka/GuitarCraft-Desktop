@@ -301,6 +301,21 @@ impl Builder {
             text(&draft, "color"),
             "color",
         );
+        let look = compile_pedal(&self.compiled())
+            .map(|d| d["look"].clone())
+            .unwrap_or_default();
+        for (key, title, items, def) in [
+            ("size", "Размер корпуса", &crate::look::SIZES[..], "standard"),
+            ("finish", "Покрытие", &crate::look::FINISHES[..], "paint"),
+        ] {
+            let sel = child(&child(p, "label", "muted small", title), "select", "", "");
+            attr(&sel, "style", "width:100%;margin:3px 0 8px");
+            attr(&sel, "data-edit", key);
+            for (id, name) in items {
+                option(&sel, id, name);
+            }
+            selected(&sel, look[key].as_str().unwrap_or(def));
+        }
         let actions = child(p, "div", "det-actions", "");
         style(&actions, "margin-top", "18px");
         let preview = child(&actions, "div", "builder-preview", "");
@@ -494,6 +509,14 @@ impl Builder {
                 p["knobs"][idx(&el, "data-knob-index").unwrap()]["name"] = json!(v);
                 drop(p);
                 self.flow();
+                return self.props();
+            }
+            "size" | "finish" => {
+                if !p["look"].is_object() {
+                    p["look"] = json!({});
+                }
+                p["look"][&key] = json!(v);
+                drop(p);
                 return self.props();
             }
             "category" | "color" => {

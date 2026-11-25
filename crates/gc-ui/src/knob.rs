@@ -53,6 +53,26 @@ pub fn fmt(p: &JsValue, v: f64) -> String {
                 crate::i18n::message("{}% (отн.)", &[&(v * 100.).round().to_string()])
             }
         }
+        "mic-distance" => {
+            return format!("{} {}", (1. + v * 60.).round(), crate::i18n::text("см"))
+        }
+        "mic-angle" => return format!("{}°", (v * 90.).round()),
+        "pan" => {
+            let p = (v * 100.).round();
+            return if p == 0. {
+                "C".into()
+            } else if p < 0. {
+                format!("L{}", -p)
+            } else {
+                format!("R{p}")
+            };
+        }
+        "room-distance" => {
+            return crate::i18n::message("{}% к стене", &[&(v * 100.).round().to_string()])
+        }
+        "room-width" => {
+            return format!("{:.1} {}", 0.1 + v * 1.9, crate::i18n::text("м"))
+        }
         "cab-level" => {
             let db = (v - 0.5) * 24.;
             return format!(

@@ -187,6 +187,9 @@ mod i18n;
 mod knob;
 
 mod pedal;
+mod look;
+mod combo;
+mod overview;
 
 mod host;
 mod tuner;

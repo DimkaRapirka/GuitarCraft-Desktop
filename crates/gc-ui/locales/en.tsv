@@ -553,3 +553,147 @@ MIDI Learn: «{}». Подвигайте регулятор на контрол�
 Для выхода используется размер буфера драйвера.	The output is using the driver’s buffer size.
 выход: нет устройства вывода	No audio output device is available
 выход: драйвер не начал передачу звука	The output driver did not start streaming audio
+Тяните пару комнатных микрофонов: вверх-вниз — дальше от кабинета, в стороны — шире	Drag the room pair: up and down moves it away from the cab, sideways spreads it wider
+Тяните микрофон: центр ↔ край диффузора. Колесо: дистанция, Shift+колесо: угол	Drag a mic: cone center ↔ edge. Wheel: distance, Shift+wheel: angle
+Включить / выключить	On / off
+Соло: слушать только этот канал	Solo: hear only this channel
+Свой IR заменяет оба близких микрофона	Your IR replaces both close mics
+Помещение	Room
+Модель микрофона	Microphone model
+ШИРИНА	WIDTH
+УГОЛ	ANGLE
+Инвертировать полярность	Invert polarity
+Динамик крупно	Speaker close-up
+План комнаты	Room plan
+Кабинет и микрофоны	Cabinet & mics
+Комната:	Room:
+Без комнаты	No room
+Плотно	Tight
+Студия	Studio
+Большая комната	Big room
+Зал	Hall
+м	m
+см	cm
+{}% к стене	{}% to the wall
+Угол микрофона	Mic angle
+Комнатные микрофоны	Room mics
+Канал кабинета	Cab channel
+Соло канала	Channel solo
+Микрофоны кабинета	Cab mics
+Панорама микрофона	Mic pan
+Уровень канала	Channel level
+Полярность микрофона	Mic polarity
+Заглушённая будка: почти сухо, только плотность	Isolation booth: almost dry, just density
+Контрольная студия: короткая ровная комната	Control studio: short, even room
+Деревянная live-комната: объём без хвоста	Wooden live room: size without a tail
+Бетонный гараж: яркие звенящие отражения	Concrete garage: bright ringing reflections
+Концертный зал: широкий и далёкий	Concert hall: wide and distant
+Каменная церковь: длинный светлый хвост	Stone church: long bright tail
+ПОЗИЦИЯ	POS
+ДИСТ.	DIST
+ДАЛЕКО	FAR
+СРЕЗ НЧ	LOW CUT
+Мини	Mini
+Стандарт	Standard
+Широкая	Wide
+Большая	Big
+Краска	Paint
+Металлик	Metallic
+Блёстки	Sparkle
+Матовая	Matte
+Хаммертон	Hammertone
+Чёрные	Black
+Кремовые	Cream
+Хром	Chrome
+В цвет корпуса	Body color
+Вид педали	Pedal look
+Размер, цвет, покрытие, ручки и надпись этой педали	Size, color, finish, knobs and label of this pedal
+🎨 Вид…	🎨 Workshop…
+Внешний вид: {}	Look: {}
+Размер корпуса	Enclosure size
+Цвет корпуса	Enclosure color
+Любой цвет	Any color
+Покрытие	Finish
+Ручки	Knobs
+Светодиод	LED
+Надпись	Label
+Убрать изменения вида у этой педали	Remove this pedal's look changes
+Как у модели	Model default
+Новые экземпляры этой модели будут выглядеть так же	New pedals of this model will look the same
+Сделать видом всех «{}»	Use for every “{}”
+Вернуть заводской вид модели	Restore the model's factory look
+Сбросить вид модели	Reset model look
+Вид модели сохранён	Model look saved
+Комбо 1×12	1×12 combo
+Комбо 2×12	2×12 combo
+Мини 1×10	1×10 mini
+Голова	Head
+Левант	Levant
+Твид	Tweed
+Гладкий	Smooth
+Оксблад	Oxblood
+Соль и перец	Salt & pepper
+Серебро	Silver
+Чёрная	Black
+Пшеничная	Wheat
+Коричневая	Brown
+Золото	Gold
+Кремовая	Cream
+Белый	White
+Золотой	Gold
+Чёрный	Black
+Без канта	No piping
+Рукописный	Script
+Рубленый	Block
+Хром-шильд	Chrome badge
+Формат	Format
+Тольекс	Tolex
+Фактура	Texture
+Ткань сетки	Grille cloth
+Панель	Panel
+Кант	Piping
+Логотип	Logo
+Подсветка ручек	Knob glow
+Уголки	Corners
+Металлические	Metal
+Без уголков	None
+Сохранить изменения	Save changes
+Сохранить и включить	Save and use
+Мой комбик	My combo
+Тольекс, сетка, панель, кант, логотип и формат	Tolex, grille, panel, piping, logo and format
+🎛 Собрать комбик…	🎛 Design a combo…
+Изменить «{}»	Edit “{}”
+＋ Своё оформление из картинки…	＋ Skin from a picture…
+Комбик «{}» сохранён	Combo “{}” saved
+Вся цепочка на одном экране: педали, усилитель, кабинет и эффекты	The whole chain on one screen: pedals, amp, cab and effects
+▦ Вся цепочка	▦ Whole chain
+Вкл / выкл (bypass)	On / off (bypass)
+Открыть полный редактор	Open the full editor
+Гейт	Gate
+Дилей	Delay
+Реверб	Reverb
+Вся цепочка	Whole chain
+Сигнал идёт слева направо и сверху вниз. Всё редактируется прямо здесь.	Signal flows left to right, top to bottom. Edit everything right here.
+Уместить всё на экране	Fit everything on screen
+Вместить	Fit
+Открыть на педалборде	Open on the pedalboard
+Мастерская · {}	Workshop · {}
+Закрыть мастерскую	Close the workshop
+Корпус	Enclosure
+Смешать свой цвет	Mix your own color
+Рисунок	Artwork
+без рисунка	no artwork
+PNG, JPG или WebP: он напечатается на корпусе	PNG, JPG or WebP: it is printed on the enclosure
+Загрузить картинку…	Load a picture…
+Рисунок для педали	Pedal artwork
+Наклейкой	As a print
+Рисунок посередине корпуса, как шелкография	Artwork in the middle of the enclosure, like a silk-screen print
+Во весь корпус	Full wrap
+Рисунок закрывает весь корпус вместо краски	Artwork covers the whole enclosure instead of paint
+Без рисунка	No artwork
+Вернуть рисунок модели	Restore the model's artwork
+Рисунок модели	Model artwork
+Стиль рисунка: «неоновый кит», «старая гравюра с волком»…	Artwork style: “neon whale”, “old engraving of a wolf”…
+Промпт для генератора картинок: вставьте его в ChatGPT, Midjourney или другой	Prompt for an image generator: paste it into ChatGPT, Midjourney or another
+Промпт скопирован: сгенерируйте картинку и загрузите её сюда	Prompt copied: generate a picture and load it here
+ваш стиль: цвета, материалы, эпоха	your style: colours, materials, era

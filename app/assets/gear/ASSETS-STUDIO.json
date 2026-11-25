@@ -1,0 +1,164 @@
+[
+  {
+    "file": "app/assets/gear/workshop/workbench.jpg",
+    "w": 2400,
+    "h": 1200,
+    "transparent": false
+  },
+  {
+    "file": "app/assets/gear/workshop/spray_can.png",
+    "w": 600,
+    "h": 1500,
+    "transparent": true
+  },
+  {
+    "file": "app/assets/gear/workshop/spray_can_tint.png",
+    "w": 600,
+    "h": 1500,
+    "transparent": true
+  },
+  {
+    "file": "app/assets/gear/workshop/finish_paint.png",
+    "w": 512,
+    "h": 512,
+    "transparent": true
+  },
+  {
+    "file": "app/assets/gear/workshop/finish_metal.png",
+    "w": 512,
+    "h": 512,
+    "transparent": true
+  },
+  {
+    "file": "app/assets/gear/workshop/finish_sparkle.png",
+    "w": 512,
+    "h": 512,
+    "transparent": true
+  },
+  {
+    "file": "app/assets/gear/workshop/finish_matte.png",
+    "w": 512,
+    "h": 512,
+    "transparent": true
+  },
+  {
+    "file": "app/assets/gear/workshop/finish_hammer.png",
+    "w": 512,
+    "h": 512,
+    "transparent": true
+  },
+  {
+    "file": "app/assets/gear/workshop/knob_cream.png",
+    "w": 1024,
+    "h": 1024,
+    "transparent": true
+  },
+  {
+    "file": "app/assets/gear/workshop/knob_chrome.png",
+    "w": 1024,
+    "h": 1024,
+    "transparent": true
+  },
+  {
+    "file": "app/assets/gear/workshop/label_tape.png",
+    "w": 1200,
+    "h": 120,
+    "transparent": true
+  },
+  {
+    "file": "app/assets/gear/studio/live_room.jpg",
+    "w": 2400,
+    "h": 1350,
+    "transparent": false
+  },
+  {
+    "file": "app/assets/gear/studio/mic_stand.png",
+    "w": 900,
+    "h": 1400,
+    "transparent": true
+  },
+  {
+    "file": "app/assets/gear/studio/console_strip.png",
+    "w": 360,
+    "h": 1600,
+    "transparent": false
+  },
+  {
+    "file": "app/assets/gear/studio/fader_cap.png",
+    "w": 300,
+    "h": 420,
+    "transparent": true
+  },
+  {
+    "file": "app/assets/gear/studio/fader_slot.png",
+    "w": 120,
+    "h": 1400,
+    "transparent": true
+  },
+  {
+    "file": "app/assets/gear/studio/floor_plan.jpg",
+    "w": 1600,
+    "h": 1000,
+    "transparent": false
+  },
+  {
+    "file": "app/assets/gear/textures/tolex_levant.png",
+    "w": 512,
+    "h": 512,
+    "transparent": false
+  },
+  {
+    "file": "app/assets/gear/textures/tolex_tweed.png",
+    "w": 512,
+    "h": 512,
+    "transparent": false
+  },
+  {
+    "file": "app/assets/gear/textures/tolex_smooth.png",
+    "w": 512,
+    "h": 512,
+    "transparent": false
+  },
+  {
+    "file": "app/assets/gear/textures/grille_oxblood.png",
+    "w": 512,
+    "h": 512,
+    "transparent": false
+  },
+  {
+    "file": "app/assets/gear/textures/grille_salt.png",
+    "w": 512,
+    "h": 512,
+    "transparent": false
+  },
+  {
+    "file": "app/assets/gear/textures/grille_silver.png",
+    "w": 512,
+    "h": 512,
+    "transparent": false
+  },
+  {
+    "file": "app/assets/gear/textures/grille_black.png",
+    "w": 512,
+    "h": 512,
+    "transparent": false
+  },
+  {
+    "file": "app/assets/gear/textures/grille_wheat.png",
+    "w": 512,
+    "h": 512,
+    "transparent": false
+  },
+  {
+    "file": "app/assets/gear/textures/grille_brown.png",
+    "w": 512,
+    "h": 512,
+    "transparent": false
+  },
+  {
+    "file": "app/assets/gear/textures/panel_brushed.png",
+    "w": 512,
+    "h": 512,
+    "transparent": false
+  }
+]

@@ -17,7 +17,7 @@ serde_json = "1"
 serde-wasm-bindgen = "0.6"
 web-sys = { version = "0.3", features = [
   "Window", "Document", "Element", "HtmlElement", "HtmlInputElement", "HtmlSelectElement",
-  "HtmlButtonElement", "HtmlImageElement", "HtmlCanvasElement", "CanvasRenderingContext2d",
+  "HtmlButtonElement", "HtmlImageElement", "HtmlCanvasElement", "CanvasRenderingContext2d", "CanvasGradient", "CanvasPattern", "TextMetrics",
   "Blob", "Url", "ImageData", "Node", "NodeList", "HtmlCollection", "Text", "Event", "EventTarget", "CustomEvent", "CustomEventInit",
   "PointerEvent", "MouseEvent", "KeyboardEvent", "WheelEvent", "DomRect", "DomTokenList",
   "CssStyleDeclaration", "Storage", "Performance", "console", "AddEventListenerOptions", "EventInit", "MouseEventInit", "KeyboardEventInit", "PointerEventInit",

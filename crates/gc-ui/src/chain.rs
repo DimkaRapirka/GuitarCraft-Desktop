@@ -387,7 +387,9 @@ pub fn render() -> Result<(), JsValue> {
             "ember" | "midnight" | "seafoam" | "walnut" => {
                 format!("url(assets/gear/thumb_{skin}.png)")
             }
-            _ => "linear-gradient(#333, #111)".into(),
+            _ => crate::combo::thumb(skin)
+                .map(|u| format!("url({u})"))
+                .unwrap_or_else(|| "linear-gradient(#333, #111)".into()),
         },
     );
     child(&el, "div", "jack", "IN");
@@ -401,6 +403,7 @@ pub fn render() -> Result<(), JsValue> {
     }
     gap(&el, chain.len(), &playing)?;
     child(&el, "div", "jack", "OUT");
+    crate::overview::entry(&app(), &el);
     Ok(())
 }
 pub fn menu_for(b: &JsValue, x: f64, y: f64) -> Result<(), JsValue> {
