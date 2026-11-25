@@ -45,7 +45,9 @@ impl Processor for Squash {
     fn set(&mut self, v: &Value) {
         let k = num(v, "comp", 0.5);
         self.c.threshold = lerp(-10.0, -45.0, k); self.c.ratio = lerp(2.0, 12.0, k); self.c.knee = 8.0; self.c.attack = lerp(0.001, 0.05, num(v, "attack", 0.3)); self.c.release = 0.18;
-        self.mk.set(db_to_gain(k * 6.0 + (num(v, "level", 0.5) - 0.5) * 18.0)); // auto make-up already restores most of the level self.mix.set(num(v, "blend", 1.0), false);
+        // auto make-up already restores most of the level, so the knob adds only a little on top
+        self.mk.set(db_to_gain(k * 6.0 + (num(v, "level", 0.5) - 0.5) * 18.0));
+        self.mix.set(num(v, "blend", 1.0), false);
     }
     fn process(&mut self, buf: &mut [f32]) {
         let n = buf.len(); self.wet[..n].copy_from_slice(buf); self.c.process(&mut self.wet[..n]);

@@ -67,41 +67,57 @@ pub fn make(node: &PlanNode, sr: f32, user: &HashMap<String, Value>) -> Option<B
 /// Params JSON a node's processor expects (strips the audition definition wrapper).
 pub fn node_params(n: &PlanNode) -> Value { n.json.get("__def").map(|_| n.json.get("params").cloned().unwrap_or(Value::Null)).unwrap_or_else(|| n.json.clone()) }
 
-/// Kernel (IR) a node needs: cache key + builder. Cab IRs from files are resolved by the caller via `ir_file`.
-pub fn kernel_for(n: &PlanNode, sr: f32, ir_file: &dyn Fn(&str) -> Option<Vec<f32>>) -> Option<(String, Box<dyn FnOnce() -> Vec<f32> + Send>)> {
+/// Kernels (IRs) a node needs: cache key + builder. The cab returns four (close A, close B, room L, room R);
+/// reverbs return one. User IR files are resolved by the caller via `ir_file`.
+pub type KernelBuild = Box<dyn FnOnce() -> Vec<Vec<f32>> + Send>;
+pub fn kernel_for(n: &PlanNode, sr: f32, ir_file: &dyn Fn(&str) -> Option<Vec<f32>>) -> Option<(String, KernelBuild)> {
     if n.kind == "cab" {
-        let v = &n.json;
-        if txt(v, "mode", "model") == "ir" {
-            if let Some(path) = v.get("irPath").and_then(|x| x.as_str()) {
-                if let Some(ir) = ir_file(path) { let ir = crate::ir::normalize_user_ir(ir, 8192); return Some((format!("irf:{path}"), Box::new(move || ir))); }
-            }
-        }
-        let (cab, mic) = (txt(v, "model", "4x12-v").to_string(), txt(v, "mic", "dyn57").to_string());
-        let (pos, dist) = (num(v, "position", 0.3), num(v, "distance", 0.2));
-        let second = txt(v, "mic2", "").to_string();
-        let blend = num(v, "blend", 0.5).clamp(0.0, 1.0);
-        let pos2 = num(v, "position2", 0.65).clamp(0.0, 1.0);
-        let dist2 = num(v, "distance2", 0.25).clamp(0.0, 1.0);
-        let inverted = v["invert2"].as_bool().unwrap_or(false);
-        let key = format!("cab:{cab}:{mic}:{pos:.3}:{dist:.3}:{second}:{pos2:.3}:{dist2:.3}:{blend:.3}:{inverted}");
-        return Some((key, Box::new(move || {
-            let mut impulse = crate::ir::cab_ir(sr, &cab, &mic, pos, dist);
-            if !second.is_empty() && blend > 0.0 {
-                let other = crate::ir::cab_ir(sr, &cab, &second, pos2, dist2);
-                let gain = if inverted { -blend } else { blend };
-                for (a, b) in impulse.iter_mut().zip(other) {
-                    *a = *a * (1.0 - blend) + b * gain;
-                }
-            }
-            impulse
-        })));
+        let setup = crate::room::cab_setup(&n.json);
+        let user = setup.ir.as_deref().and_then(ir_file).map(|ir| crate::ir::normalize_user_ir(ir, 8192));
+        let key = format!("{}:{}", crate::room::kernel_key(&setup), if user.is_some() { "file" } else { "model" });
+        return Some((key, Box::new(move || crate::room::cab_kernels(sr, &setup, user))));
     }
-    kernel_spec(&n.kind, &node_params(n), sr)
+    kernel_spec(&n.kind, &node_params(n), sr).map(|(k, b)| (k, Box::new(move || vec![b()]) as KernelBuild))
 }
 
-pub struct Node { pub uid: String, pub kind: String, pub key: Option<String>, pub proc: Box<dyn Processor> }
+/// A block of the running chain. After the cab the chain is stereo: `twin` processes the right channel.
+pub struct Node { pub uid: String, pub kind: String, pub key: Option<String>, pub proc: Box<dyn Processor>, pub twin: Option<Box<dyn Processor>> }
 pub struct Chain { pub sig: String, pub nodes: Vec<Node> }
-impl Chain { pub fn process(&mut self, buf: &mut [f32]) { for n in self.nodes.iter_mut() { n.proc.process(buf); } } }
+impl Chain {
+    /// Mono in `mono`; stereo result in `l`/`r` (both copies of mono when nothing splits).
+    pub fn process(&mut self, mono: &mut [f32], l: &mut [f32], r: &mut [f32]) {
+        let mut stereo = false;
+        for n in self.nodes.iter_mut() {
+            if !stereo {
+                if n.proc.splits() { n.proc.process_split(mono, l, r); stereo = true; } else { n.proc.process(mono); }
+            } else {
+                n.proc.process(l);
+                match n.twin.as_mut() { Some(t) => t.process(r), None => r.copy_from_slice(l) }
+            }
+        }
+        if !stereo { l.copy_from_slice(mono); r.copy_from_slice(mono); }
+    }
+}
+
+/// Build a chain for a plan. Blocks after the first cab get a right-channel twin.
+/// `kernels(node)` returns the node's kernel key and impulse responses (cached by the caller).
+pub fn build_chain(p: &Plan, sr: f32, user: &HashMap<String, Value>, kernels: &mut dyn FnMut(&PlanNode) -> Option<(String, std::sync::Arc<Vec<Vec<f32>>>)>) -> (Chain, Vec<Option<String>>) {
+    let split = p.nodes.iter().position(|n| n.kind == "cab");
+    let mut nodes = vec![]; let mut keys = vec![];
+    for (i, n) in p.nodes.iter().enumerate() {
+        let Some(mut proc) = make(n, sr, user) else { continue };
+        let mut twin = if split.map_or(false, |s| i > s) { make(n, sr, user) } else { None };
+        let mut key = None;
+        if let Some((k, irs)) = kernels(n) {
+            let _ = proc.set_kernels(irs.iter().map(|ir| Box::new(Convolver::new(ir))).collect());
+            if let Some(t) = twin.as_mut() { let _ = t.set_kernels(irs.iter().map(|ir| Box::new(Convolver::new(ir))).collect()); }
+            key = Some(k);
+        }
+        keys.push(key.clone());
+        nodes.push(Node { uid: n.uid.clone(), kind: n.kind.clone(), key, proc, twin });
+    }
+    (Chain { sig: p.sig.clone(), nodes }, keys)
+}
 
 /// Global, non-chain settings of a rig.
 #[derive(Clone, Debug, Default)]
@@ -119,8 +135,8 @@ pub enum Msg {
     Globals(Globals),
     /// Same structure: new params for node i.
     Params(Vec<(usize, Value)>),
-    /// Kernel for node i (same chain signature).
-    Kernel(usize, String, Box<Convolver>),
+    /// Kernels for node i and its right-channel twin (same chain signature).
+    Kernel(usize, String, Vec<Box<Convolver>>, Vec<Box<Convolver>>),
     /// New chain structure, crossfaded in.
     Swap(Box<Chain>),
     Mute(bool),
@@ -135,14 +151,14 @@ pub struct Rack {
     sr: f32, pub chain: Box<Chain>, old: Option<Box<Chain>>, xf: usize, xf_len: usize,
     in_gain: Smooth, pitch: PitchShift, gate: Gate, out_gain: Smooth, fader: Smooth,
     dbl_line: DelayLine, dbl_mix: Smooth, dbl_time: Smooth, dbl_lfo: Lfo, lim_l: Limiter, lim_r: Limiter,
-    scratch: Vec<f32>, scratch2: Vec<f32>, pub meters: Meters,
+    scratch: Vec<f32>, scratch2: Vec<f32>, sl: Vec<f32>, sr_: Vec<f32>, ol: Vec<f32>, or: Vec<f32>, pub meters: Meters,
 }
 impl Rack {
     pub fn new(sr: f32) -> Self {
         Self { sr, chain: Box::new(Chain { sig: String::new(), nodes: vec![] }), old: None, xf: 0, xf_len: (sr * 0.025) as usize,
             in_gain: Smooth::new(1.0, sr, 0.02), pitch: PitchShift::new(sr), gate: Gate::new(sr), out_gain: Smooth::new(db_to_gain(-9.0), sr, 0.02), fader: Smooth::new(1.0, sr, 0.01),
             dbl_line: DelayLine::new((sr * 0.06) as usize), dbl_mix: Smooth::new(0.0, sr, 0.03), dbl_time: Smooth::new(0.012 * sr, sr, 0.05), dbl_lfo: Lfo::new(sr, 0.31, Wave::Sine),
-            lim_l: Limiter::new(sr), lim_r: Limiter::new(sr), scratch: vec![0.0; 8192], scratch2: vec![0.0; 8192], meters: Meters { raw: 0.0, input: 0.0, output: 0.0, gate_open: false } }
+            lim_l: Limiter::new(sr), lim_r: Limiter::new(sr), scratch: vec![0.0; 8192], scratch2: vec![0.0; 8192], sl: vec![0.0; 8192], sr_: vec![0.0; 8192], ol: vec![0.0; 8192], or: vec![0.0; 8192], meters: Meters { raw: 0.0, input: 0.0, output: 0.0, gate_open: false } }
     }
     pub fn handle(&mut self, m: Msg, trash: &mut dyn FnMut(Garbage)) {
         match m {
@@ -152,8 +168,18 @@ impl Rack {
                 self.out_gain.set(db_to_gain(g.out_db - 9.0)); // −9 dB headroom before the safety limiter
                 self.dbl_mix.set(if g.dbl_on { 1.0 } else { 0.0 }); self.dbl_time.set(g.dbl_spread / 1000.0 * self.sr);
             }
-            Msg::Params(list) => { for (i, v) in list.iter() { if let Some(n) = self.chain.nodes.get_mut(*i) { n.proc.set(v); } } trash(Garbage::Json(list)); }
-            Msg::Kernel(i, key, c) => { if let Some(n) = self.chain.nodes.get_mut(i) { n.key = Some(key); if let Some(old) = n.proc.set_kernel(c) { trash(Garbage::Conv(old)); } } else { trash(Garbage::Conv(c)); } }
+            Msg::Params(list) => {
+                for (i, v) in list.iter() { if let Some(n) = self.chain.nodes.get_mut(*i) { n.proc.set(v); if let Some(t) = n.twin.as_mut() { t.set(v); } } }
+                trash(Garbage::Json(list));
+            }
+            Msg::Kernel(i, key, a, b) => match self.chain.nodes.get_mut(i) {
+                Some(n) => {
+                    n.key = Some(key);
+                    for old in n.proc.set_kernels(a) { trash(Garbage::Conv(old)); }
+                    match n.twin.as_mut() { Some(t) => for old in t.set_kernels(b) { trash(Garbage::Conv(old)); }, None => for c in b { trash(Garbage::Conv(c)); } }
+                }
+                None => { for c in a.into_iter().chain(b) { trash(Garbage::Conv(c)); } }
+            },
             Msg::Swap(new) => {
                 if let Some(o) = self.old.take() { trash(Garbage::Chain(o)); }
                 let prev = std::mem::replace(&mut self.chain, new);
@@ -170,23 +196,26 @@ impl Rack {
         for (b, x) in buf.iter_mut().zip(input.iter()) { raw = raw.max(x.abs()); *b = *x * self.in_gain.next(); pin = pin.max(b.abs()); }
         self.pitch.process(buf);
         self.gate.process(buf);
+        let (l, r) = (&mut self.sl[..n], &mut self.sr_[..n]);
         if let Some(old) = self.old.as_mut() {
             let b2 = &mut self.scratch2[..n]; b2.copy_from_slice(buf);
-            old.process(b2);
-            self.chain.process(buf);
-            for i in 0..n { let t = ((self.xf + i) as f32 / self.xf_len as f32).min(1.0); buf[i] = buf[i] * t + b2[i] * (1.0 - t); }
+            let (ol, or) = (&mut self.ol[..n], &mut self.or[..n]);
+            old.process(b2, ol, or);
+            self.chain.process(buf, l, r);
+            for i in 0..n { let t = ((self.xf + i) as f32 / self.xf_len as f32).min(1.0); l[i] = l[i] * t + ol[i] * (1.0 - t); r[i] = r[i] * t + or[i] * (1.0 - t); }
             self.xf += n;
             if self.xf >= self.xf_len { if let Some(o) = self.old.take() { trash(Garbage::Chain(o)); } }
-        } else { self.chain.process(buf); }
+        } else { self.chain.process(buf, l, r); }
         let mut pout = 0f32;
         for i in 0..n {
-            let x = buf[i] * self.fader.next();
-            self.dbl_line.write(x);
+            let f = self.fader.next();
+            let (xl, xr) = (l[i] * f, r[i] * f);
+            self.dbl_line.write(xl);
             let m = self.dbl_mix.next();
             let d = self.dbl_line.read(self.dbl_time.next() + self.dbl_lfo.next() * 0.0006 * self.sr);
             let g = self.out_gain.next();
-            let l = self.lim_l.tick(x * g); let r = self.lim_r.tick((x * (1.0 - m) + d * m) * g);
-            out_l[i] = l; out_r[i] = r; pout = pout.max(l.abs()).max(r.abs());
+            let lo = self.lim_l.tick(xl * g); let ro = self.lim_r.tick((xr * (1.0 - m) + d * m) * g);
+            out_l[i] = lo; out_r[i] = ro; pout = pout.max(lo.abs()).max(ro.abs());
         }
         self.meters = Meters { raw, input: pin, output: pout, gate_open: self.gate.is_open() };
     }
@@ -199,18 +228,42 @@ mod tests {
     use serde_json::json;
 
     #[test]
-    fn second_microphone_blends_without_changing_single_mic_presets() {
-        let kernel = |params| {
-            let node = PlanNode { uid: "cab".into(), kind: "cab".into(), json: params };
-            kernel_for(&node, 48000.0, &|_| None).unwrap().1()
-        };
-        let first = kernel(json!({ "mic": "dyn57" }));
-        let second = kernel(json!({ "mic": "ribbon121", "position": 0.65, "distance": 0.25 }));
-        assert_eq!(kernel(json!({ "mic2": "ribbon121", "blend": 0 })), first);
-        assert_eq!(kernel(json!({ "mic2": "ribbon121", "blend": 1 })), second);
-        let mixed = kernel(json!({ "mic2": "ribbon121", "blend": 0.5, "invert2": true }));
-        for ((a, b), sum) in first.iter().zip(second).zip(mixed) {
-            assert!((sum - 0.5 * (a - b)).abs() < 1e-6);
+    fn legacy_two_mic_presets_keep_their_mono_sum() {
+        // old presets blended two mics into one IR; the cab room plays them as two centred mics
+        let sr = 48000.0;
+        let cab = json!({ "mic": "dyn57", "distance": 0.2, "mic2": "ribbon121", "position2": 0.65, "distance2": 0.2, "blend": 0.5, "invert2": true });
+        let node = PlanNode { uid: "cab".into(), kind: "cab".into(), json: cab.clone() };
+        let (_, build) = kernel_for(&node, sr, &|_| None).unwrap();
+        let k = build();
+        assert_eq!(k.len(), 4);
+        assert!(k[2].is_empty() && k[3].is_empty(), "room is off for old presets");
+        let a = crate::ir::cab_ir(sr, "4x12-v", "dyn57", 0.3, 0.2);
+        let b = crate::ir::cab_ir(sr, "4x12-v", "ribbon121", 0.65, 0.2);
+        let mut p = make(&node, sr, &HashMap::new()).unwrap();
+        let _ = p.set_kernels(k.iter().map(|ir| Box::new(Convolver::new(ir))).collect());
+        let mut x = vec![0f32; 2048]; x[0] = 1.0;
+        let (mut l, mut r) = (vec![0f32; 2048], vec![0f32; 2048]);
+        // let the level smoothers settle on a silent block first
+        let z = vec![0f32; 48000]; let (mut zl, mut zr) = (vec![0f32; 48000], vec![0f32; 48000]);
+        p.process_split(&z, &mut zl, &mut zr);
+        p.process_split(&x, &mut l, &mut r);
+        let level = 1.0; // level 0.5 → 0 dB
+        for i in 0..2000 {
+            let want = (0.5 * a[i] - 0.5 * b[i]) * level;
+            assert!((l[i] - want).abs() < 2e-3 && (r[i] - want).abs() < 2e-3, "sample {i}: {} vs {want}", l[i]);
         }
+    }
+
+    #[test]
+    fn chain_turns_stereo_after_the_cab() {
+        let rig = json!({ "chain": [{ "uid": "amp", "kind": "amp" }, { "uid": "cab", "kind": "cab" }, { "uid": "delay", "kind": "delay" }],
+            "cab": { "mics": { "a": { "pan": -1.0 }, "b": { "on": true, "pan": 1.0, "mic": "ribbon121" } } }, "delay": { "on": true } });
+        let p = plan(&rig);
+        let (mut chain, _) = build_chain(&p, 48000.0, &HashMap::new(), &mut |n| kernel_for(n, 48000.0, &|_| None).map(|(k, b)| (k, std::sync::Arc::new(b()))));
+        assert!(chain.nodes[0].twin.is_none() && chain.nodes[2].twin.is_some());
+        let mut mono: Vec<f32> = (0..4096).map(|i| ((i as f32) * 0.05).sin() * 0.3).collect();
+        let (mut l, mut r) = (vec![0f32; 4096], vec![0f32; 4096]);
+        chain.process(&mut mono, &mut l, &mut r);
+        assert!(l.iter().zip(r.iter()).any(|(a, b)| (a - b).abs() > 1e-4), "hard-panned mics must differ");
     }
 }

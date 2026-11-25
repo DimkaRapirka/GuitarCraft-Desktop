@@ -1,6 +1,6 @@
 //! Offline render: cargo run --release -p gc-dsp --example render -- <di.wav> <rig.json> <out.wav>
 use gc_dsp::analysis::{bands, power_spectrum, REFERENCE};
-use gc_dsp::chain::{globals, kernel_for, make, plan, Chain, Msg, Node, Rack};
+use gc_dsp::chain::{build_chain, globals, kernel_for, plan, Msg, Rack};
 use std::collections::HashMap;
 
 fn main() {
@@ -11,17 +11,11 @@ fn main() {
     let rig: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&a[2]).unwrap()).unwrap();
     let p = plan(&rig);
     let user = HashMap::new();
-    let mut nodes = vec![];
-    for n in &p.nodes {
-        let mut proc = make(n, sr, &user).expect("node");
-        let mut key = None;
-        if let Some((k, build)) = kernel_for(n, sr, &|_| None) { proc.set_kernel(Box::new(gc_dsp::conv::Convolver::new(&build()))); key = Some(k); }
-        nodes.push(Node { uid: n.uid.clone(), kind: n.kind.clone(), key, proc });
-    }
+    let (chain, _) = build_chain(&p, sr, &user, &mut |n| kernel_for(n, sr, &|_| None).map(|(k, b)| (k, std::sync::Arc::new(b()))));
     let mut rack = Rack::new(sr);
     let mut trash = |_g| {};
     rack.handle(Msg::Globals(globals(&rig)), &mut trash);
-    rack.handle(Msg::Swap(Box::new(Chain { sig: p.sig.clone(), nodes })), &mut trash);
+    rack.handle(Msg::Swap(Box::new(chain)), &mut trash);
     let t0 = std::time::Instant::now();
     let (mut l, mut r) = (vec![0f32; input.len()], vec![0f32; input.len()]);
     for (i, chunk) in input.chunks(128).enumerate() {

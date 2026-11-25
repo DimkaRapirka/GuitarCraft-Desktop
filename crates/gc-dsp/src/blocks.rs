@@ -12,6 +12,16 @@ pub trait Processor: Send {
     fn process(&mut self, buf: &mut [f32]);
     /// Receive a prebuilt convolution kernel (built off the audio thread). Returns the old one for disposal.
     fn set_kernel(&mut self, _c: Box<Convolver>) -> Option<Box<Convolver>> { None }
+    /// Several kernels at once (the cab room uses four). Returns everything to dispose of.
+    fn set_kernels(&mut self, k: Vec<Box<Convolver>>) -> Vec<Box<Convolver>> {
+        let mut it = k.into_iter(); let mut old: Vec<Box<Convolver>> = vec![];
+        if let Some(c) = it.next() { if let Some(o) = self.set_kernel(c) { old.push(o); } }
+        old.extend(it); old
+    }
+    /// True for the block where the mono signal becomes stereo (the cab room).
+    fn splits(&self) -> bool { false }
+    /// Mono in, stereo out. Only called when `splits()` is true.
+    fn process_split(&mut self, mono: &[f32], l: &mut [f32], r: &mut [f32]) { l.copy_from_slice(mono); self.process(l); r.copy_from_slice(l); }
 }
 
 pub fn num(v: &Value, k: &str, d: f32) -> f32 { v.get(k).and_then(|x| x.as_f64()).map(|x| x as f32).unwrap_or(d) }
@@ -93,15 +103,65 @@ impl Processor for Amp {
 }
 
 // ------------------------------------------------------------------ cab
-pub struct Cab { conv: Option<Box<Convolver>>, level: Smooth }
-impl Cab { pub fn new(sr: f32) -> Self { Self { conv: None, level: Smooth::new(1.0, sr, 0.02) } } }
-impl Processor for Cab {
-    fn set(&mut self, v: &Value) { self.level.set(db_to_gain((num(v, "level", 0.5) - 0.5) * 24.0)); }
-    fn process(&mut self, buf: &mut [f32]) {
-        if let Some(c) = self.conv.as_mut() { c.process(buf); }
-        for s in buf.iter_mut() { *s *= self.level.next(); }
+/// Cab room: close mics A and B (each with level, pan, phase) plus a stereo pair of room mics.
+/// Kernels: [close A, close B, room L, room R], built off the audio thread by `room::cab_kernels`.
+/// Levels, pans, phase, mute and solo apply live, without rebuilding kernels.
+pub struct Cab { conv: [Option<Box<Convolver>>; 4], g: [Smooth; 4], pan: [(f32, f32); 2], level: Smooth }
+impl Cab {
+    pub fn new(sr: f32) -> Self {
+        let sm = || Smooth::new(0.0, sr, 0.02);
+        Self { conv: [None, None, None, None], g: [Smooth::new(1.0, sr, 0.02), sm(), sm(), sm()], pan: [(1.0, 1.0); 2], level: Smooth::new(1.0, sr, 0.02) }
     }
-    fn set_kernel(&mut self, c: Box<Convolver>) -> Option<Box<Convolver>> { self.conv.replace(c) }
+}
+fn balance(p: f32) -> (f32, f32) { ((1.0 - p).min(1.0), (1.0 + p).min(1.0)) }
+impl Processor for Cab {
+    fn set(&mut self, v: &Value) {
+        let s = crate::room::cab_setup(v);
+        let heard = |id: &str, on: bool| on && s.solo.as_deref().map_or(true, |x| x == id);
+        for (k, (m, id)) in s.mics.iter().zip(["a", "b"]).enumerate() {
+            let g = if heard(id, m.on) { db_to_gain(m.level_db) } else { 0.0 };
+            self.g[k].set(if m.phase { -g } else { g });
+            self.pan[k] = balance(m.pan);
+        }
+        let room = if heard("room", s.room.on) { db_to_gain(s.room.level_db) } else { 0.0 };
+        self.g[2].set(room); self.g[3].set(room);
+        self.level.set(db_to_gain((s.level - 0.5) * 24.0));
+    }
+    fn splits(&self) -> bool { true }
+    fn process_split(&mut self, mono: &[f32], l: &mut [f32], r: &mut [f32]) {
+        for i in 0..mono.len() {
+            let x = mono[i]; let (mut a, mut b) = (0f32, 0f32);
+            for k in 0..2 {
+                let g = self.g[k].next();
+                if let Some(c) = self.conv[k].as_mut() { let y = c.tick(x) * g; a += y * self.pan[k].0; b += y * self.pan[k].1; }
+            }
+            let (g2, g3) = (self.g[2].next(), self.g[3].next());
+            let [_, _, c2, c3] = &mut self.conv;
+            if let (Some(cl), Some(cr)) = (c2.as_mut(), c3.as_mut()) { a += cl.tick(x) * g2; b += cr.tick(x) * g3; }
+            let lv = self.level.next();
+            l[i] = a * lv; r[i] = b * lv;
+        }
+    }
+    fn process(&mut self, buf: &mut [f32]) {
+        // mono fallback (not used inside a chain): sum of the stereo result
+        for s in buf.iter_mut() {
+            let x = *s; let mut y = 0f32;
+            for k in 0..2 { let g = self.g[k].next(); if let Some(c) = self.conv[k].as_mut() { y += c.tick(x) * g; } }
+            let g2 = self.g[2].next(); self.g[3].next();
+            let [_, _, c2, c3] = &mut self.conv;
+            if let (Some(cl), Some(cr)) = (c2.as_mut(), c3.as_mut()) { y += (cl.tick(x) + cr.tick(x)) * 0.5 * g2; }
+            *s = y * self.level.next();
+        }
+    }
+    fn set_kernels(&mut self, k: Vec<Box<Convolver>>) -> Vec<Box<Convolver>> {
+        let mut old = vec![];
+        for (i, c) in k.into_iter().enumerate().take(4) {
+            let new = if c.len_taps() == 0 { old.push(c); None } else { Some(c) };
+            if let Some(o) = std::mem::replace(&mut self.conv[i], new) { old.push(o); }
+        }
+        old
+    }
+    fn set_kernel(&mut self, c: Box<Convolver>) -> Option<Box<Convolver>> { self.conv[0].replace(c) }
 }
 
 // ------------------------------------------------------------------ eq

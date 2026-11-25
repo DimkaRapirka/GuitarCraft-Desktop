@@ -290,23 +290,39 @@ impl Rig {
                 ("/delay/sync".into(), value.clone())
             }
             "cab" => {
-                let v = match key {
-                    "mic2" if value.is_null() || value == "" => Value::Null,
-                    "mic" | "mic2" | "model" => {
-                        let bank = if key == "model" { "cabs" } else { "mics" };
-                        if EQUIPMENT[bank].get(value.as_str().unwrap_or("")).is_none() {
-                            return Err(format!("Неизвестный {key}"));
-                        }
+                // new layout: a.* / b.* (close mics), room.*, solo; older single keys map onto mic a / b
+                let (group, leaf) = match key {
+                    "mic" | "position" | "distance" => ("a", key),
+                    "mic2" => ("b", "mic"),
+                    "position2" => ("b", "position"),
+                    "distance2" => ("b", "distance"),
+                    "invert2" => ("b", "phase"),
+                    _ => key.split_once('.').unwrap_or(("", key)),
+                };
+                let bool_of = |v: &Value| v.as_bool().map(Value::from).ok_or_else(|| "Ожидается переключатель".to_string());
+                let v = match (group, leaf) {
+                    ("b", "mic") if value.is_null() || value == "" => Value::Null,
+                    ("a" | "b" | "room", "mic") | ("", "model") => {
+                        let bank = if leaf == "model" { "cabs" } else { "mics" };
+                        if EQUIPMENT[bank].get(value.as_str().unwrap_or("")).is_none() { return Err(format!("Неизвестный {key}")); }
                         value.clone()
                     }
-                    "blend" | "position" | "distance" | "position2" | "distance2" | "level" => {
-                        normalized(&Value::Null, value)?
+                    ("room", "room") => {
+                        if EQUIPMENT["rooms"].get(value.as_str().unwrap_or("")).is_none() { return Err("Комнаты: booth, studio, live, garage, hall, church".into()); }
+                        value.clone()
                     }
-                    "invert2" => json!(value.as_bool().ok_or("Ожидается переключатель")?),
-                    "irPath" if value.is_null() || value.is_string() => value.clone(),
-                    _ => return Err(format!("Неизвестный параметр кабинета {key}")),
+                    ("a" | "b", "position" | "distance" | "angle") | ("room", "distance" | "width") | ("", "blend" | "level") => normalized(&Value::Null, value)?,
+                    ("a" | "b" | "room", "level") => json!(finite(value)?.clamp(-60., 12.)),
+                    ("a" | "b", "pan") => json!(finite(value)?.clamp(-1., 1.)),
+                    ("room", "lowcut") => json!(finite(value)?.clamp(20., 600.)),
+                    ("a" | "b", "on" | "phase") | ("room", "on") => bool_of(value)?,
+                    ("", "solo") => match value.as_str() { None | Some("") => Value::Null, Some(s @ ("a" | "b" | "room")) => json!(s), _ => return Err("solo: a, b, room или пусто".into()) },
+                    ("", "irPath") if value.is_null() || value.is_string() => value.clone(),
+                    _ => return Err(format!("Неизвестный параметр кабинета {key}. Есть: model, level, solo, irPath, a.mic/position/distance/angle/level/pan/phase/on, b.*, room.on/room/mic/distance/width/level/lowcut")),
                 };
-                (format!("/cab/{key}"), v)
+                canonical = if group.is_empty() { leaf.to_string() } else { format!("{group}.{leaf}") };
+                let path = match group { "" => format!("/cab/{leaf}"), "room" => format!("/cab/room/{leaf}"), g => format!("/cab/mics/{g}/{leaf}") };
+                (path, v)
             }
             "gate" | "input" | "output" => {
                 let (path, min, max) = match (uid.as_str(), key) {
@@ -343,6 +359,21 @@ impl Rig {
             source,
             gesture,
             |r| {
+                if uid == "cab" { crate::cab::migrate(&mut r["cab"]); }
+                if path == "/cab/blend" {
+                    // old two-mic balance: split it into the two close-mic levels
+                    let b = v.as_f64().unwrap_or(0.5);
+                    let db = |g: f64| if g <= 1e-6 { -60.0 } else { 20.0 * g.log10() };
+                    r["cab"]["mics"]["a"]["level"] = json!(db(1.0 - b));
+                    r["cab"]["mics"]["b"]["level"] = json!(db(b));
+                    r["cab"]["mics"]["b"]["on"] = json!(b > 0.0);
+                    return Ok(());
+                }
+                if path == "/cab/mics/b/mic" {
+                    r["cab"]["mics"]["b"]["on"] = json!(!v.is_null());
+                    if v.is_null() { return Ok(()); }
+                }
+                if path == "/cab/mics/a/mic" { r["cab"]["mic"] = v.clone(); }
                 if path.ends_with("/params") {
                     r.pointer_mut(&path).ok_or("Нет блока")?[&canonical] = v.clone();
                 } else {

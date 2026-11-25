@@ -167,3 +167,4 @@ pub mod session;
 pub mod catalog;
 
 pub mod rig;
+pub mod cab;
