@@ -1,17 +1,17 @@
 {
-  "version": "0.12.0",
+  "version": "0.12.1",
   "platforms": {
     "darwin-aarch64": {
-      "url": "https://github.com/DimkaRapirka/GuitarCraft-Desktop/releases/download/v0.12.0/GuitarCraft_0.12.0_aarch64.app.tar.gz",
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUT1B0c0ErWGI2dXU4UDhHYUhIM3crd3FqeklYWVdjUzNYTU1WeUg1RVVyMEdnL1AzQmZhMElRYysvTXgyL3lab0RiVVdmUXJYZm5XK1VzUE5RaTRtYSs1SHU2cVhHclF3PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzk1NjI3NDc4CWZpbGU6R3VpdGFyQ3JhZnRfMC4xMi4wX2FhcmNoNjQuYXBwLnRhci5negl2ZXJzaW9uOjAuMTIuMApudHBHNnZVZjJOUjhqaThuZlFqY3M1TFZVZ0tWTkV4MHNScngxUFdYb0tIM2N2cGc2QXEvY1p0RnYrT0ZrWUJGd3E2QkxhcVJycFRKTFJDYmRVeVdDUT09Cg=="
+      "url": "https://github.com/DimkaRapirka/GuitarCraft-Desktop/releases/download/v0.12.1/GuitarCraft_0.12.1_aarch64.app.tar.gz",
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUT1B0c0ErWGI2dXNkMS9tRFV6SzJ1cWQ5c1djSFFGM3hUSDJWQTltN2tFVy84cTF3OFc1cEwzb0IyY0xzbjhFSUQydGVRUk5oY3ZITHI1S1RLUldqcFBqaWNwZm9UYmcwPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzk1NjMzMTI5CWZpbGU6R3VpdGFyQ3JhZnRfMC4xMi4xX2FhcmNoNjQuYXBwLnRhci5negl2ZXJzaW9uOjAuMTIuMQpMSkVONUZKczFORC9TTzlqcHlDcTFia3kwUlRNV3BnTXJwZlhCWWFiakpRUGw2RUdtSWxSSkd6am8rT0JISWZBVzNmRzNMa0NwV0p2b0JNWXBJOXpDQT09Cg=="
     },
     "windows-x86_64": {
-      "url": "https://github.com/DimkaRapirka/GuitarCraft-Desktop/releases/download/v0.12.0/GuitarCraft_0.12.0_x64-setup.exe",
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUT1B0c0ErWGI2dXJmRGVUUkY4NmdxeWRuN0g3ckhQeUxGTFgyelVldzFLNWFzNHM1bnl0bXpjaGFITmxQWmNVMHNnWDh6aTh4bElld2tNTFRqY3NPZHRvRVJ1bnk3RHdnPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzk1NjI3NDc4CWZpbGU6R3VpdGFyQ3JhZnRfMC4xMi4wX3g2NC1zZXR1cC5leGUJdmVyc2lvbjowLjEyLjAKTkpOdlRzT3czQ0JXU2xEOFpJSWY4WE9CSllGUmZLRjZXdmF6TldYU2lZMkxWYkdGdlROd2hBc2I1WUpncjJjVm1oZklRaHQvYmlHRStGSEkySUdkRGc9PQo="
+      "url": "https://github.com/DimkaRapirka/GuitarCraft-Desktop/releases/download/v0.12.1/GuitarCraft_0.12.1_x64-setup.exe",
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUT1B0c0ErWGI2dW9IMW1uczh0UnpVSW5xUlJDTU9WMDVHUThFemJEc0hZZDFVZUttMGVDVTVtRUtLMmlvM2JqMmFvanVLVTcrMXhpVUdlN1pYWUFYSmxKNTN5NmE1Z0FjPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzk1NjMzMTI5CWZpbGU6R3VpdGFyQ3JhZnRfMC4xMi4xX3g2NC1zZXR1cC5leGUJdmVyc2lvbjowLjEyLjEKeFhQUjM5eXkyaTliZ2k5M1hoRDRxS3B0OWhUZ25DM2hVVjFLOHdpQ2M1QURmejNvVnhOcytRU1BqSmRReWlCaDVkSVFhL3QzbFd6Y0UwQ1lnT2d5QlE9PQo="
     },
     "linux-x86_64-deb": {
-      "url": "https://github.com/DimkaRapirka/GuitarCraft-Desktop/releases/download/v0.12.0/GuitarCraft_0.12.0_amd64.deb",
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUT1B0c0ErWGI2dXBCcjdaQU9DL2k3ZUx2MHRySHVoUTA0UjZTMjNHakozbDlYY0VEamtOQzZ4czZrKzZ3N29nL3hLaFJJYjJrQVJycmZCTWZRNlZjaUVqV3dWQWxOVUFZPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzk1NjI3NDc4CWZpbGU6R3VpdGFyQ3JhZnRfMC4xMi4wX2FtZDY0LmRlYgl2ZXJzaW9uOjAuMTIuMApTTHF3ZmFwZVFMM2ZUNjNqWmszSkpUaDYxUktlempTQndtRjNpVzAyVmNlTkFIY2Y2c09XY3I1VENIb3gvTWJBMWhGMWcxWkdpRnF5MGxDZmV2Zm1CZz09Cg=="
+      "url": "https://github.com/DimkaRapirka/GuitarCraft-Desktop/releases/download/v0.12.1/GuitarCraft_0.12.1_amd64.deb",
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUT1B0c0ErWGI2dXFjdVNKU1p1cmdLNE1aWHZuLzFxT2k4ak9JNGFueVlzL3ZNeG8vNXhETFF2UUw3TWdFbnhNMUE4RklxT3BVeFZNVCsra3FGL2VEZSsxc3phRk1nOEFvPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzk1NjMzMTMwCWZpbGU6R3VpdGFyQ3JhZnRfMC4xMi4xX2FtZDY0LmRlYgl2ZXJzaW9uOjAuMTIuMQpOTm52cVdrN0hQM2VOM2RFQ0lKS1g5TDJ6encxSHgwODJ2UlM1d2thTVZuejZyUDlBd0xZbVhoRkE1K2dZSkcrei9oS3BycEpQSTcyV3VFZDBSanNEQT09Cg=="
     }
   }
 }
