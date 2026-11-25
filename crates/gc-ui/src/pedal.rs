@@ -27,7 +27,23 @@ pub fn pedal_visual(_app: &JsValue, def: &JsValue, params: &JsValue, opts: &JsVa
     };
     let count = controls.length();
     let model = string(def, "id");
-    let art = string(def, "artwork");
+    let look = {
+        let l = get(opts, "look");
+        if l.is_object() {
+            l
+        } else {
+            get(def, "look")
+        }
+    };
+    let print = string(&look, "print");
+    let full = string(&look, "printFit") == "full";
+    let art = if print == "none" {
+        String::new()
+    } else if !print.is_empty() {
+        crate::look::file_src(&print)
+    } else {
+        string(def, "artwork")
+    };
     let illustrated = if art.is_empty() { "" } else { " illustrated" };
     let root = make(
         "div",
@@ -36,16 +52,24 @@ pub fn pedal_visual(_app: &JsValue, def: &JsValue, params: &JsValue, opts: &JsVa
             if on { "on" } else { "off" }
         ),
     );
-    let color = get(def, "color")
-        .as_string()
+    crate::look::apply(&root, &look, size == "thumb");
+    let small = string(&look, "size") == "mini";
+    let color = Some(string(&look, "color"))
+        .filter(|c| c.starts_with('#'))
+        .or_else(|| get(def, "color").as_string())
         .unwrap_or_else(|| "#777".into());
     style(&root, "--c", &color);
     style(&root, "--ink", ink(&color));
     root.set_attribute("data-pedal-vis", &uid).unwrap();
     root.set_attribute("data-model", &model).unwrap();
-    for class in ["pr-enc", "pr-tint", "pr-sheen"] {
+    for class in ["pr-enc", "pr-tint"] {
         child(&root, "div", class, "");
     }
+    if full && !art.is_empty() {
+        let wrap = child(&root, "div", "pr-wrapart", "");
+        style(&wrap, "background-image", &format!("url(\"{art}\")"));
+    }
+    child(&root, "div", "pr-sheen", "");
     if size != "thumb" {
         match crate::wear::texture(&model) {
             Ok(texture) => {
@@ -69,6 +93,7 @@ pub fn pedal_visual(_app: &JsValue, def: &JsValue, params: &JsValue, opts: &JsVa
                 &num(params, &key, num(&param, "def", 0.5)).into(),
             );
             let width = match (size.as_str(), count > 3) {
+                _ if small => if count > 2 { 26 } else { 32 },
                 ("lg", true) => 40,
                 ("lg", false) => 47,
                 (_, true) => 32,
@@ -94,7 +119,7 @@ pub fn pedal_visual(_app: &JsValue, def: &JsValue, params: &JsValue, opts: &JsVa
             knobs.append_child(&knob(&options)).unwrap();
         }
     }
-    if !art.is_empty() {
+    if !art.is_empty() && !full {
         let img = child(&face, "img", "pr-print", "");
         img.set_attribute("src", &art).unwrap();
         img.set_attribute("alt", "").unwrap();
@@ -104,7 +129,9 @@ pub fn pedal_visual(_app: &JsValue, def: &JsValue, params: &JsValue, opts: &JsVa
     if size == "thumb" {
         child(&face, "i", "pr-switch", "");
     } else {
-        let name = string(def, "name");
+        let name = Some(string(&look, "name"))
+            .filter(|n| !n.is_empty())
+            .unwrap_or_else(|| string(def, "name"));
         child(&face, "div", "pr-name", &name);
         child(&face, "div", "pr-type", &string(def, "type"));
         let switch = child(&face, "button", "pr-switch", "");

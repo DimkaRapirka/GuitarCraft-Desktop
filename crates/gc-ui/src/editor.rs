@@ -100,6 +100,7 @@ fn info(app: &JsValue, p: &Element) -> Result<(), JsValue> {
         invoke(a, "toast", &[desc.clone().into()]).map(drop)
     });
     child(p, "div", "grow", "");
+    crate::look::toggle_button(app, p);
     let b = button(p, "", "", "Заменить…");
     let id = uid.clone();
     on(&b, "click", app, move |a, _| {
@@ -127,6 +128,48 @@ fn info(app: &JsValue, p: &Element) -> Result<(), JsValue> {
         move |a, _| invoke(a, "removePedal", &[uid.clone().into()]).map(drop),
     );
     Ok(())
+}
+/// A pedal with live knobs and footswitch, as on the board.
+pub(crate) fn pedal_element(app: &JsValue, b: &Value, def: &JsValue, size: &str) -> Result<Element, JsValue> {
+    let uid = text(b, "uid").to_owned();
+    let look = crate::look::look_of(app, &def, b);
+    let opts = js(&json!({"uid":uid,"size":size,"on":b["on"]!=false,"look":look}))?;
+    let a = app.clone();
+    let id = uid.clone();
+    let model = def.clone();
+    let change = Closure::<dyn Fn(String, f64)>::new(move |key: String, v: f64| {
+        let params = get(&model, "params");
+        let name = if js_sys::Array::is_array(&params) {
+            js_sys::Array::from(&params)
+                .iter()
+                .find(|p| string(p, "id") == key)
+                .map(|p| string(&p, "name"))
+                .unwrap_or(key.clone())
+        } else {
+            key.clone()
+        };
+        report(store::edit(
+            &a,
+            &format!("{}: {name}", string(&model, "name")),
+            Some(&format!("{id}.{key}")),
+            |s| {
+                if let Some(p) = s["chain"]
+                    .as_array_mut()
+                    .and_then(|bs| bs.iter_mut().find(|p| p["uid"] == id))
+                {
+                    p["params"][&key] = json!(v);
+                }
+            },
+        ));
+    });
+    set(&opts, "onChange", &change.into_js_value());
+    let a = app.clone();
+    let id = uid.clone();
+    let toggle = Closure::<dyn Fn()>::new(move || {
+        report(invoke(&a, "toggleBlock", &[id.clone().into()]).map(drop))
+    });
+    set(&opts, "onToggle", &toggle.into_js_value());
+    Ok(pedal_visual(app, def, &js(&b["params"])?, &opts))
 }
 #[wasm_bindgen(js_name=renderBoard)]
 pub fn render_board(app: JsValue, sel: &str, stage: Element) -> Result<Element, JsValue> {
@@ -184,43 +227,8 @@ pub fn render_board(app: JsValue, sel: &str, stage: Element) -> Result<Element, 
             "",
         );
         attr(&slot, "data-board-pedal", &uid);
-        let opts = js(&json!({"uid":uid,"size":size,"on":b["on"]!=false}))?;
-        let a = app.clone();
-        let id = uid.clone();
-        let model = def.clone();
-        let change = Closure::<dyn Fn(String, f64)>::new(move |key: String, v: f64| {
-            let params = get(&model, "params");
-            let name = if js_sys::Array::is_array(&params) {
-                js_sys::Array::from(&params)
-                    .iter()
-                    .find(|p| string(p, "id") == key)
-                    .map(|p| string(&p, "name"))
-                    .unwrap_or(key.clone())
-            } else {
-                key.clone()
-            };
-            report(store::edit(
-                &a,
-                &format!("{}: {name}", string(&model, "name")),
-                Some(&format!("{id}.{key}")),
-                |s| {
-                    if let Some(p) = s["chain"]
-                        .as_array_mut()
-                        .and_then(|bs| bs.iter_mut().find(|p| p["uid"] == id))
-                    {
-                        p["params"][&key] = json!(v);
-                    }
-                },
-            ));
-        });
-        set(&opts, "onChange", &change.into_js_value());
-        let a = app.clone();
-        let id = uid.clone();
-        let toggle = Closure::<dyn Fn()>::new(move || {
-            report(invoke(&a, "toggleBlock", &[id.clone().into()]).map(drop))
-        });
-        set(&opts, "onToggle", &toggle.into_js_value());
-        slot.append_child(&pedal_visual(&app, &def, &js(&b["params"])?, &opts))?;
+        let pedal = pedal_element(&app, b, &def, size)?;
+        slot.append_child(&pedal)?;
         let model = js(b)?;
         on(
             &button(&slot, "slot-menu", "Меню педали", "⋯"),
@@ -237,6 +245,9 @@ pub fn render_board(app: JsValue, sel: &str, stage: Element) -> Result<Element, 
             }
             set(a, "selected", &uid.clone().into());
             invoke(a, "renderChain", &[])?;
+            if crate::look::is_open() {
+                return invoke(a, "renderStage", &[]).map(drop);
+            }
             let t: Element = e.current_target().unwrap().unchecked_into();
             let wrap = t.closest(".board-wrap")?.unwrap();
             let slots = wrap.query_selector_all(".board-slot")?;
@@ -250,6 +261,10 @@ pub fn render_board(app: JsValue, sel: &str, stage: Element) -> Result<Element, 
         plus(&board, i, &app);
     }
     info(&app, &status)?;
+    if let Some(b) = chain.iter().find(|b| b["uid"] == sel && b["kind"] == "pedal") {
+        let def = invoke(&get(&app, "catalog"), "get", &[text(b, "pedal").into()])?;
+        crate::look::panel(&app, &wrap, sel, &def, b)?;
+    }
     Ok(wrap)
 }
 
@@ -290,6 +305,7 @@ pub fn render_editor(app: JsValue, stage: Element) -> Result<(), JsValue> {
         "gate" | "eq" | "delay" | "reverb" => crate::racks::render_racks(app, &sel, stage.clone())?,
         "cab" => crate::cab::render_cab(app, stage.clone())?,
         PEDALBOARD => render_board(app, &sel, stage.clone())?,
+        crate::overview::OVERVIEW => crate::overview::render_overview(app, stage.clone())?,
         _ => {
             let state = store::state(&app)?;
             if let Some(b) = list(&state["chain"])

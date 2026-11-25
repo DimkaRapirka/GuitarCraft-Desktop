@@ -44,7 +44,8 @@ pub fn compile_pedal(raw: &Value) -> Result<Value, String> {
     Ok(
         json!({"id":id,"name":name,"type":raw["type"].as_str().unwrap_or("Custom"),"category":raw["category"].as_str().unwrap_or("utility"),
         "color":raw["color"].as_str().unwrap_or("#6b7280"),"character":list(&raw["character"]),"desc":raw["desc"].as_str().unwrap_or("Педаль из конструктора DSP-блоков"),
-        "source":"user","supported":true,"params":params,"blocks":raw["blocks"],"json":raw}),
+        "source":"user","supported":true,"params":params,"blocks":raw["blocks"],"json":raw,
+        "look":if raw["look"].is_object() { raw["look"].clone() } else { json!({"size":match params.len() { 0..=2 => "mini", 3..=4 => "standard", 5..=6 => "wide", _ => "big" }}) }}),
     )
 }
 

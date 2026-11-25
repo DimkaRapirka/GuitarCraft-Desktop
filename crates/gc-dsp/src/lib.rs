@@ -6,6 +6,7 @@ pub mod conv;
 pub mod dynamics;
 pub mod ir;
 pub mod pedals;
+pub mod room;
 pub mod shaper;
 pub mod util;
 pub mod analysis;

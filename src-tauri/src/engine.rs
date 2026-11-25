@@ -3,7 +3,7 @@
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use cpal::{FromSample, Sample, SampleFormat};
 use crossbeam_channel::{bounded, Receiver, Sender};
-use gc_dsp::chain::{globals, kernel_for, make, node_params, plan, Chain, Garbage, Msg, Node, Rack};
+use gc_dsp::chain::{build_chain, globals, kernel_for, node_params, plan, Garbage, Msg, Rack};
 use gc_dsp::conv::Convolver;
 use parking_lot::Mutex;
 use serde::{Deserialize, Serialize};
@@ -63,7 +63,7 @@ impl Analysis {
     }
 }
 
-struct Control { rig: Value, sig: String, keys: Vec<Option<String>>, user: HashMap<String, Value>, kernels: HashMap<String, Arc<Vec<f32>>>, ir_files: HashMap<String, Vec<f32>>, di_src: Option<(Vec<f32>, u32)> }
+struct Control { rig: Value, sig: String, keys: Vec<Option<String>>, user: HashMap<String, Value>, kernels: HashMap<String, Arc<Vec<Vec<f32>>>>, ir_files: HashMap<String, Vec<f32>>, di_src: Option<(Vec<f32>, u32)> }
 
 pub struct Engine {
     pub shared: Arc<Shared>,
@@ -116,28 +116,26 @@ impl Engine {
         let ir_cache = c.ir_files.clone();
         let ir_file = |path: &str| -> Option<Vec<f32>> { ir_cache.get(path).cloned().or_else(|| decode_file(path).ok().map(|(d, s)| resample(&d, s as f32, sr))) };
         if p.sig != c.sig {
-            let mut nodes = vec![]; let mut keys = vec![];
-            for n in &p.nodes {
-                let Some(mut proc) = make(n, sr, &c.user) else { continue };
-                let mut key = None;
-                if let Some((k, build)) = kernel_for(n, sr, &ir_file) {
-                    let ir = c.kernels.entry(k.clone()).or_insert_with(|| Arc::new(build())).clone();
-                    proc.set_kernel(Box::new(Convolver::new(&ir))); key = Some(k);
-                }
-                keys.push(key.clone());
-                nodes.push(Node { uid: n.uid.clone(), kind: n.kind.clone(), key, proc });
-            }
+            let c = &mut *c;
+            let (user, cache) = (&c.user, &mut c.kernels);
+            let (chain, keys) = build_chain(&p, sr, user, &mut |n| {
+                let (k, build) = kernel_for(n, sr, &ir_file)?;
+                Some((k.clone(), cache.entry(k).or_insert_with(|| Arc::new(build())).clone()))
+            });
             c.keys = keys; c.sig = p.sig.clone();
-            self.send(Cb::Rack(Msg::Swap(Box::new(Chain { sig: p.sig, nodes }))));
+            self.send(Cb::Rack(Msg::Swap(Box::new(chain))));
         } else {
             let list: Vec<(usize, Value)> = p.nodes.iter().enumerate().map(|(i, n)| (i, node_params(n))).collect();
             self.send(Cb::Rack(Msg::Params(list)));
+            let split = p.nodes.iter().position(|n| n.kind == "cab");
             for (i, n) in p.nodes.iter().enumerate() {
                 if let Some((k, build)) = kernel_for(n, sr, &ir_file) {
                     if c.keys.get(i).cloned().flatten().as_deref() != Some(k.as_str()) {
-                        let ir = c.kernels.entry(k.clone()).or_insert_with(|| Arc::new(build())).clone();
+                        let irs = c.kernels.entry(k.clone()).or_insert_with(|| Arc::new(build())).clone();
                         if c.kernels.len() > 96 { c.kernels.clear(); }
-                        self.send(Cb::Rack(Msg::Kernel(i, k.clone(), Box::new(Convolver::new(&ir)))));
+                        let convs = || irs.iter().map(|ir| Box::new(Convolver::new(ir))).collect::<Vec<_>>();
+                        let twin = if split.map_or(false, |s| i > s) { convs() } else { vec![] };
+                        self.send(Cb::Rack(Msg::Kernel(i, k.clone(), convs(), twin)));
                         if let Some(slot) = c.keys.get_mut(i) { *slot = Some(k); }
                     }
                 }
