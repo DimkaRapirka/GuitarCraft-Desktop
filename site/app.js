@@ -141,11 +141,11 @@
 
   /* ------------------------------------------------------------------ release */
   const FALLBACK = {
-    tag_name: 'v0.11.2', html_url: RELEASES, published_at: '2026-11-22T14:12:51Z',
+    tag_name: 'v0.12.0', html_url: RELEASES, published_at: '2026-11-25T17:30:53Z',
     assets: [
-      { name: 'GuitarCraft_0.11.2_aarch64.dmg', size: 55944710 },
-      { name: 'GuitarCraft_0.11.2_x64-setup.exe', size: 50367457 },
-      { name: 'GuitarCraft_0.11.2_amd64.deb', size: 51828290 },
+      { name: 'GuitarCraft_0.12.0_aarch64.dmg', size: 66844997 },
+      { name: 'GuitarCraft_0.12.0_x64-setup.exe', size: 61170972 },
+      { name: 'GuitarCraft_0.12.0_amd64.deb', size: 62630960 },
     ],
   };
   const OS = {
