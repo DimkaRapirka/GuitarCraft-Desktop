@@ -12,7 +12,7 @@ html { scroll-behavior: smooth; background: var(--bg); -webkit-text-size-adjust:
 body { font: 300 16px/1.65 var(--sans); color: var(--text); overflow-x: hidden;
   background: radial-gradient(1000px 700px at 85% -10%, #18222c 0, #0000 65%), radial-gradient(800px 600px at -10% 60%, #14181d 0, #0000 60%), var(--bg); }
 a { color: inherit; text-decoration: none; }
-img { max-width: 100%; display: block; }
+img { max-width: 100%; height: auto; display: block; }
 button { font: inherit; color: inherit; }
 ::selection { background: #bfe3ff40; }
 :focus-visible { outline: 2px solid var(--ice); outline-offset: 3px; border-radius: 6px; }
